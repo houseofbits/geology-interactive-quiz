@@ -5,7 +5,7 @@ module.exports = {
         alias: {
             // '/bootstrap': path.resolve(__dirname, '../node_modules/bootstrap/scss'),
             //
-            // '/js/app': path.resolve(__dirname, '../app/Assets/js/app'), //replace with @app/
+            '@js': path.resolve(__dirname, '../app/js'),
             //
             // '/js/admin': path.resolve(__dirname, '../app/Assets/js/admin'),
             //

@@ -1,0 +1,12 @@
+
+@font-face {
+    font-family: "customFont";
+    src: url(fonts/font.ttf);
+}
+body {
+    font-family: "customFont", serif;
+    user-select: none;
+    background-color: black;
+    /*overflow: hidden;*/
+}
+

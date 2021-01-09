@@ -1,4 +1,10 @@
+import Vue from 'vue';
+import MainView from './gui/MainView.vue';
+import MainSceneInstance from './scene/MainInstance';
 
-
-
-console.log('ssssss');
+if(document.getElementById('gui')) {
+    const AppRoot = Vue.extend(MainView);
+    new AppRoot({
+        el: '#gui'
+    });
+}
