@@ -13,6 +13,11 @@ export default class SceneManager {
         this.onThemeSelected('FirstQuizScene');
 
         this.engine.runRenderLoop(() => this.render());
+
+
+
+
+
     }
 
     render() {
