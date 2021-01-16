@@ -75,12 +75,8 @@ export default {
         },
         calibrate() {
             this.objects = [];
-            this.objectDefinition = null;
             const service = new ObjectDetectionService();
-            const result = service.calculateObjectDefinition(this.touches, 5);
-            if (result) {
-                this.objectDefinition = result;
-            }
+            this.objectDefinition = service.calculateObjectDefinition(this.touches, 5);
         }
     },
     mounted() {
