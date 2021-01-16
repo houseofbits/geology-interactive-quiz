@@ -7,7 +7,7 @@
         <ul class="list-group w-50 pt-1" v-if="objectDefinition">
             <li class="list-group-item">{{ objectDefinition.segments[0] }}</li>
             <li class="list-group-item">{{ objectDefinition.segments[1] }}</li>
-            <li class="list-group-item">{{ objectDefinition.segments[2] }}</li>
+<!--            <li class="list-group-item">{{ objectDefinition.segments[2] }}</li>-->
         </ul>
         <div v-for="touch in touches">
             <div :style="touchPointTransform(touch)" class="touch-element"></div>
@@ -46,7 +46,7 @@ export default {
             touches: [
                 new TouchPoint(100, 100),
                 new TouchPoint(200, 200),
-                new TouchPoint(300, 100),
+            //    new TouchPoint(300, 100),
             ],
             objects: [],
             objectDefinition: null
@@ -81,7 +81,7 @@ export default {
     },
     mounted() {
         document.addEventListener('touchstart', function (event) {
-            //console.log(event);
+            console.log(event);
         }, false);
         document.addEventListener('touchend', function (event) {
         }, false);
