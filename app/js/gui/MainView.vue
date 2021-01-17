@@ -33,6 +33,11 @@ html {
 *
 * chrome.exe --kiosk --incognito --disable-pinch --overscroll-history-navigation=0
 *
+*   1) Install gnome extension: sudo apt-get install chrome-gnome-shell
+*   2) Open in Chroms: https://extensions.gnome.org/extension/1140/disable-gestures/
+*   3) Add extension
+*   4) Done
+*
 * */
 
 import TouchPoint from "./Stuctures/TouchPoint";
