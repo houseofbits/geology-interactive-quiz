@@ -1,14 +1,65 @@
 <template>
     <div class="main-view">
-        <div class="m-1 debug p-2">
-            <button class="btn btn-primary" type="button" @click="detect">Detect</button>
-            <button class="btn btn-primary" type="button" @click="calibrate">Calibrate</button>
+        <div class="container m-0 p-0">
+            <div class="row debug m-0 p-0">
+                <button class="btn btn-primary m-1" type="button" @click="detect">Detect</button>
+                <button class="btn btn-primary m-1" type="button" @click="calibrate">Calibrate</button>
+            </div>
+            <div class="row m-0 mt-2">
+                <div class="col-2 pl-1">
+                    <table v-if="objectDefinition" class="table table-bordered table-sm table-dark table-striped">
+                        <thead>
+                        <tr>
+                            <th>min</th>
+                            <th>max</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(segment, index) in objectDefinition.segments" :key="index">
+                            <td>{{ segment[0].toFixed(2) }}</td>
+                            <td>{{ segment[1].toFixed(2) }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-3 m-0 pl-1">
+                    <table v-if="pointDistances.length > 0" class="table table-bordered table-sm table-dark table-striped">
+                        <thead>
+                        <tr>
+                            <th>A</th>
+                            <th>B</th>
+                            <th>dst (px)</th>
+                            <th>dst (mm)</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(dst, index) in pointDistances" :key="index">
+                            <td>{{ dst.indexA }}</td>
+                            <td>{{ dst.indexB }}</td>
+                            <td>{{ dst.distance.toFixed(2) }}</td>
+                            <td>{{ (dst.distance / 3.36).toFixed(2) }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="col-2 m-0 pl-1">
+                    <table v-if="touches.length > 0" class="table table-bordered table-sm table-dark table-striped">
+                        <thead>
+                        <tr>
+                            <th>x</th>
+                            <th>y</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(touch, index) in touches" :key="index">
+                            <td>{{ touch.x.toFixed(2) }}</td>
+                            <td>{{ touch.y.toFixed(2) }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
-        <ul class="list-group w-50 pt-1" v-if="objectDefinition">
-            <li class="list-group-item">{{ objectDefinition.segments[0] }}</li>
-            <li class="list-group-item">{{ objectDefinition.segments[1] }}</li>
-            <li class="list-group-item">{{ objectDefinition.segments[2] }}</li>
-        </ul>
         <div v-for="touch in touches">
             <div :style="touchPointTransform(touch)" class="touch-element"></div>
         </div>
@@ -38,6 +89,13 @@ html {
 *   3) Add extension
 *   4) Done
 *
+*
+* width = 303 mm
+* height = 229 mm
+*
+* 3.36 px/mm
+*
+*
 * */
 
 import TouchPoint from "./Stuctures/TouchPoint";
@@ -54,7 +112,8 @@ export default {
                 new TouchPoint(300, 100),
             ],
             objects: [],
-            objectDefinition: null
+            objectDefinition: null,
+            pointDistances: []
         };
     },
     methods: {
@@ -69,9 +128,9 @@ export default {
                 return;
             }
             const service = new ObjectDetectionService();
-            const pointDst = service.calculatePointDistances(this.touches);
+            this.pointDistances = service.calculatePointDistances(this.touches);
 
-            const result = service.detectObject(this.objectDefinition, pointDst);
+            const result = service.detectObject(this.objectDefinition, this.pointDistances);
             if (result) {
                 this.objects = [
                     service.getDetectedPosition(result, this.touches)
@@ -86,7 +145,12 @@ export default {
     },
     mounted() {
         document.addEventListener('touchstart', function (event) {
-            console.log(event);
+            //console.log(event);
+            //this.touches = [];
+            for (const touch of event.touches) {
+                this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
+            }
+            this.detect();
         }, false);
         document.addEventListener('touchend', function (event) {
         }, false);
@@ -97,6 +161,12 @@ export default {
             }
             this.detect();
         }.bind(this), false);
+
+
+        //To disable context menu
+        window.addEventListener("contextmenu", function (e) {
+            e.preventDefault();
+        });
     }
 };
 </script>
