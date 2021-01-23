@@ -3,7 +3,10 @@
         <div class="container m-0 p-0">
             <div class="row debug m-0 p-0">
                 <button class="btn btn-primary m-1" type="button" @click="detect">Detect</button>
-                <button class="btn btn-primary m-1" type="button" @click="calibrate">Calibrate</button>
+                <button class="btn btn-secondary m-1" type="button" @click="calibrate">Calibrate</button>
+                <button v-if="objectDefinition" class="btn btn-success m-1" type="button" @click="saveObjectDefinition">
+                    Add
+                </button>
             </div>
             <div class="row m-0 mt-2">
                 <div class="col-2 pl-1">
@@ -16,14 +19,28 @@
                         </thead>
                         <tbody>
                         <tr v-for="(segment, index) in objectDefinition.segments" :key="index">
-                            <td>{{ segment[0].toFixed(2) }}</td>
                             <td>{{ segment[1].toFixed(2) }}</td>
+                            <td>{{ segment[2].toFixed(2) }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    <table v-if="objects.length > 0" class="table table-bordered table-sm table-dark table-striped">
+                        <thead>
+                        <tr>
+                            <th>id</th>
+                            <th>weight</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr v-for="(objPos, index) in objects" :key="index">
+                            <td>{{ objPos.result.definition.id }}</td>
+                            <td>{{ objPos.result.weight.toFixed(2) }}</td>
                         </tr>
                         </tbody>
                     </table>
                 </div>
-                <div class="col-3 m-0 pl-1">
-                    <table v-if="pointDistances.length > 0" class="table table-bordered table-sm table-dark table-striped">
+                <div v-if="pointDistances.length > 0" class="col-3 m-0 pl-1">
+                    <table class="table table-bordered table-sm table-dark table-striped">
                         <thead>
                         <tr>
                             <th>A</th>
@@ -42,8 +59,8 @@
                         </tbody>
                     </table>
                 </div>
-                <div class="col-2 m-0 pl-1">
-                    <table v-if="touches.length > 0" class="table table-bordered table-sm table-dark table-striped">
+                <div v-if="touches.length > 0" class="col-2 m-0 pl-1">
+                    <table class="table table-bordered table-sm table-dark table-striped">
                         <thead>
                         <tr>
                             <th>x</th>
@@ -58,13 +75,25 @@
                         </tbody>
                     </table>
                 </div>
+                <div v-if="objectDefinitionsArray.length > 0" class="col-5 pl-1">
+                    <table class="table table-bordered table-sm table-dark table-striped">
+                        <tbody>
+                        <tr v-for="(def, index) in objectDefinitionsArray" :key="index">
+                            <td>{{ def.id }}</td>
+                            <td v-for="(segment, index) in def.segments" :key="index">{{ segment[0].toFixed(2) }}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
         <div v-for="touch in touches">
             <div :style="touchPointTransform(touch)" class="touch-element"></div>
         </div>
-        <div v-for="object in objects">
-            <div :style="objectPointTransform(object)" class="object-element"></div>
+        <div v-for="(object, index) in objects">
+            <div :style="objectPointTransform(object)" :class="['color-'+object.result.definition.id]" class="object-element">{{ object.result.definition.id }}
+                {{ object.result.weight.toFixed(2) }}
+            </div>
         </div>
     </div>
 </template>
@@ -107,13 +136,15 @@ export default {
     data() {
         return {
             touches: [
-                new TouchPoint(100, 100),
-                new TouchPoint(200, 200),
-                new TouchPoint(300, 100),
+                // new TouchPoint(100, 100),
+                // new TouchPoint(200, 200),
+                // new TouchPoint(300, 100),
             ],
             objects: [],
             objectDefinition: null,
-            pointDistances: []
+            objectDefinitionsArray: [],
+            pointDistances: [],
+            detectorLoopIntervalId: null
         };
     },
     methods: {
@@ -123,35 +154,54 @@ export default {
         objectPointTransform(detectedPosition) {
             return 'transform:translate(' + detectedPosition.x + 'px,' + detectedPosition.y + 'px)';
         },
+
         detect() {
-            if (!this.objectDefinition) {
+            if (!this.objectDefinitionsArray) {
                 return;
             }
             const service = new ObjectDetectionService();
             this.pointDistances = service.calculatePointDistances(this.touches);
 
-            const result = service.detectObject(this.objectDefinition, this.pointDistances);
-            if (result) {
-                this.objects = [
-                    service.getDetectedPosition(result, this.touches)
-                ];
+            this.objects = [];
+            for (const def of this.objectDefinitionsArray) {
+                const result = service.detectObject(def, this.pointDistances);
+                if (result.length > 0) {
+                    // const res = result.reduce((p, v) => {
+                    //     return (p > v.weight ? p : v);
+                    // }, 0);
+                    // this.objects.push(service.getDetectedPosition(res, this.touches));
+                    for (const resultElement of result) {
+                        this.objects.push(service.getDetectedPosition(resultElement, this.touches));
+                    }
+                }
             }
+
+
+
         },
         calibrate() {
             this.objects = [];
             const service = new ObjectDetectionService();
-            this.objectDefinition = service.calculateObjectDefinition(this.touches, 5);
+            const objDefId = 'def-' + this.objectDefinitionsArray.length;
+            this.objectDefinition = service.calculateObjectDefinition(objDefId, this.touches, 10);
+        },
+        saveObjectDefinition() {
+            if (this.objectDefinition) {
+                this.objectDefinitionsArray.push(this.objectDefinition);
+                this.objectDefinition = null;
+            }
+        },
+        runDetectionLoop() {
+            this.detectorLoopIntervalId = setInterval(this.detect, 16);
         }
     },
     mounted() {
         document.addEventListener('touchstart', function (event) {
-            //console.log(event);
-            //this.touches = [];
             for (const touch of event.touches) {
                 this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
             }
-            this.detect();
-        }, false);
+            //this.detect();
+        }.bind(this), false);
         document.addEventListener('touchend', function (event) {
         }, false);
         document.addEventListener('touchmove', function (event) {
@@ -159,7 +209,7 @@ export default {
             for (const touch of event.touches) {
                 this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
             }
-            this.detect();
+            //this.detect();
         }.bind(this), false);
 
 
@@ -167,6 +217,18 @@ export default {
         window.addEventListener("contextmenu", function (e) {
             e.preventDefault();
         });
+
+        const service = new ObjectDetectionService();
+
+        this.objectDefinitionsArray.push(
+            service.createObjectDefinition(0, 68, 116, 131, 5)
+        );
+        this.objectDefinitionsArray.push(
+            service.createObjectDefinition(1, 57, 116, 129, 5)
+        );
+
+        this.runDetectionLoop();
+
     }
 };
 </script>
@@ -196,17 +258,29 @@ export default {
 
     .object-element {
         position: absolute;
-        width: 160px;
-        height: 160px;
-        background-color: rgba(0, 255, 0, 0.4);
+        width: 180px;
+        height: 180px;
         border: solid 1px white;
         left: 0;
         top: 0;
-        margin-left: -80px;
-        margin-top: -80px;
+        margin-left: -90px;
+        margin-top: -90px;
         border-radius: 50%;
-    }
+        color: white;
+        text-align: center;
+        line-height: 80px;
+        font-size: 20px;
 
+        &.color-0 {
+            background-color: rgba(0, 255, 0, 0.5);
+        }
+        &.color-1 {
+            background-color: rgba(0, 183, 255, 0.5);
+        }
+        &.color-2 {
+            background-color: rgba(255, 51, 0, 0.5);
+        }
+    }
 
 }
 </style>

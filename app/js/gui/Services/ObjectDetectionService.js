@@ -1,13 +1,75 @@
 import PointDistance from "../Stuctures/PointDistance";
 import ObjectDetectionResult from "../Stuctures/ObjectDetectionResult";
-import DetectedObjectPosition from "../Stuctures/DetectedObjectPosition";
+import DetectedObject from "../Stuctures/DetectedObject";
 import ObjectDefinition from "../Stuctures/ObjectDefinition";
 
 export default class ObjectDetectionService {
     constructor() {
     }
 
-    calculatePointDistances(touchPoints, tresholdMin, tresholdMax) {
+    /**
+     *
+     *      DetectedObject{
+     *          id,             //Definition id
+     *          position,       //Object position
+     *          age             //Time of existance. The older this is, the more weight it has
+     *          timeToLive      //Time value, after which object is considered not detected. This might depend on age
+     *          lastSeen        //When object was last time detected. If lastSeen + timeToLive < now -> remove object
+     *      }
+     *
+     *      Object detection algorithm:
+     *          1) Calculate point distances
+     *          2) for each objectDefinition
+     *              2.1) detect object
+     *              2.2) for each detected object, intersect it with the existing objects
+     *                  if object intersects, increase its weight
+     *              2.3) filter objects by weight so the fittest is left
+     *              2.4) intersect existing objects with the fittest,
+     *                  if intersection exists, update existing object
+     *              2.5) if intersection does not exist add fittest object to newObjects array
+     *          3) delete died objects form list
+     *
+     */
+    detectObjects(points, objectDefinitionsArray, previousObjectsArray) {
+
+        if (!objectDefinitionsArray) {
+            return;
+        }
+
+        //1) Calculate point distances
+        const pointDistances = this.calculatePointDistances(points);
+
+        //2) For each object definition
+        const newObjects = [];
+        for (const def of objectDefinitionsArray) {
+            let result = this.detectObject(def, pointDistances);
+
+            //1) Check that object does not intersect with other objects
+            result = this.filterDetectionResultByObjectOverlaps(result, previousObjectsArray);
+
+            if (result.length > 0) {
+
+                const existingObject = previousObjectsArray.find(elem => elem.id === def.id);
+                if (existingObject) {
+
+
+
+                } else {
+                    //New object, get the fittest and we are done
+                    const result = this.reduceDetectionResultByFittest(result);
+                    if (result) {
+                        const detectedObject = new DetectedObject();
+                        detectedObject.id = def.id;
+                        detectedObject.calculatePosition(result, points);
+                        newObjects.push(detectedObject);
+                    }
+                }
+            }
+        }
+        return newObjects;
+    }
+
+    calculatePointDistances(touchPoints) {
         const pointDist = [];
         for (let i = 0; i < touchPoints.length; i++) {
             for (let j = i; j < touchPoints.length; j++) {
@@ -23,6 +85,7 @@ export default class ObjectDetectionService {
     }
 
     detectObject(objectDef, pointDist) {
+        const detectedResults = [];
         for (let i = 0; i < pointDist.length; i++) {
             //Candidate A
             if (objectDef.matchSegmentLength(0, pointDist[i].distance)) {
@@ -31,8 +94,11 @@ export default class ObjectDetectionService {
                     if (i !== j && objectDef.matchSegmentLength(1, pointDist[j].distance)) {
                         for (let k = 0; k < pointDist.length; k++) {
                             if (i !== j && i !== k && j !== k && objectDef.matchSegmentLength(2, pointDist[k].distance)) {
-                                if (this.validateIndices(i, j, k, pointDist)) {
-                                    return new ObjectDetectionResult(i, j, k, this.calculateWeight(pointDist, i, j, k, objectDef));
+                                const indices = this.getIndices(i, j, k, pointDist);
+                                if (indices) {
+                                    detectedResults.push(
+                                        new ObjectDetectionResult(objectDef, indices[0], indices[1], indices[2], this.calculateWeight(pointDist, i, j, k, objectDef))
+                                    );
                                 }
                             }
                         }
@@ -40,18 +106,20 @@ export default class ObjectDetectionService {
                 }
             }
         }
-        return null;
+        return detectedResults;
     }
 
-    // detectObject(objectDef, pointDist) {
-    //     for (let i = 0; i < pointDist.length; i++) {
-    //         if (objectDef.matchSegmentLength(0, pointDist[i].distance)) {
-    //             return new ObjectDetectionResult(pointDist[i].indexA, pointDist[i].indexB, objectDef.calculateWeight(0, pointDist[i].distance));
-    //         }
-    //     }
-    // }
+    filterDetectionResultByObjectOverlaps(detectionResult, previousObjectsArray, points) {
 
-    validateIndices(i, j, k, pointDist) {
+    }
+
+    reduceDetectionResultByFittest(detectionResult) {
+        return detectionResult.reduce((p, v) => {
+            return (p > v.weight ? p : v);
+        }, 0);
+    }
+
+    getIndices(i, j, k, pointDist) {
         let pointIndexes = new Set();
         pointIndexes.add(pointDist[i].indexA);
         pointIndexes.add(pointDist[i].indexB);
@@ -59,7 +127,7 @@ export default class ObjectDetectionService {
         pointIndexes.add(pointDist[j].indexB);
         pointIndexes.add(pointDist[k].indexA);
         pointIndexes.add(pointDist[k].indexB);
-        return pointIndexes.size === 3;
+        return pointIndexes.size === 3 ? Array.from(pointIndexes) : null;
     }
 
     calculateWeight(pointDist, i, j, k, objectDef) {
@@ -77,18 +145,22 @@ export default class ObjectDetectionService {
         let x = touchPoints[detectionResult.i].x + touchPoints[detectionResult.j].x + touchPoints[detectionResult.k].x;
         let y = touchPoints[detectionResult.i].y + touchPoints[detectionResult.j].y + touchPoints[detectionResult.k].y;
 
-        return new DetectedObjectPosition(x / 3, y / 3);
+        return new DetectedObject(detectionResult, x / 3, y / 3);
     }
 
-    calculateObjectDefinition(touchPoints, error) {
-        const distances = this.calculatePointDistances(touchPoints, 0, 10000);
+    calculateObjectDefinition(id, touchPoints, error) {
+        const distances = this.calculatePointDistances(touchPoints);
         if(distances.length === 3) {
-            const objDef = new ObjectDefinition();
-            for (const dist of distances) {
-                objDef.addSegment(dist.distance - error, dist.distance + error)
-            }
-            return objDef;
+            return this.createObjectDefinition(id, distances[0].distance, distances[1].distance, distances[2].distance, error);
         }
         return null;
+    }
+
+    createObjectDefinition(id, dstA, dstB, dstC, error) {
+        const objDef = new ObjectDefinition(id);
+        objDef.addSegment(dstA, dstA - error, dstA + error);
+        objDef.addSegment(dstB, dstB - error, dstB + error);
+        objDef.addSegment(dstC, dstC - error, dstC + error);
+        return objDef;
     }
 }
