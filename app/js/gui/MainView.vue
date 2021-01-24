@@ -1,16 +1,16 @@
 <template>
     <div class="main-view">
         <div class="container m-0 p-0">
-            <div class="row debug m-0 p-0">
-                <button :class="{'btn-primary': !isSmartDetectOn, 'btn-success':isSmartDetectOn}" class="btn m-1"
+            <div class="row debug m-0 p-0 pt-2 pl-2">
+                <button :class="{'btn-primary': !isSmartDetectOn, 'btn-success':isSmartDetectOn}" class="btn btn-lg m-1"
                         type="button" @click="isSmartDetectOn = !isSmartDetectOn">Smart detect
                     {{ (isSmartDetectOn ? 'ON' : 'OFF') }}
                 </button>
-                <button v-if="touches.length > 0" class="btn btn-secondary m-1" type="button" @click="calibrate">Calibrate</button>
-                <button v-if="objectDefinition" class="btn btn-success m-1" type="button" @click="saveObjectDefinition">
+                <button v-if="touches.length > 0" class="btn btn-lg btn-secondary m-1" type="button" @click="calibrate">Calibrate</button>
+                <button v-if="objectDefinition" class="btn btn-lg btn-success m-1" type="button" @click="saveObjectDefinition">
                     Add
                 </button>
-                <button class="btn btn-danger m-1" type="button" @click="clearBuffers">Clear buffers</button>
+                <button class="btn btn-lg btn-danger m-1" type="button" @click="clearBuffers">Clear buffers</button>
             </div>
             <div class="row m-0 mt-2">
                 <div class="col-2 pl-1">
@@ -202,6 +202,7 @@ export default {
             this.objects = [];
             this.detectedObjects = [];
             this.touches = [];
+            this.objectDefinition = null;
         }
     },
     mounted() {
