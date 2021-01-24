@@ -6,9 +6,11 @@ import ObjectDetectionResult2 from "../Stuctures/ObjectDetectionResult2";
 
 export const NEGATIVE_OVERLAP_THRESHOLD = 80.0;    //Threshold value to consider two different objects as conflicting
 export const POSITIVE_OVERLAP_THRESHOLD = 160.0;   //Threshold value to consider two objects of same type as equal
+export const COLLISION_OVERLAP_THRESHOLD = 160.0;
 export const FITTEST_OVERLAPPING_WEIGHT_FACTOR = 1.0;   //Factors to define fittest overlapping object
 export const FITTEST_OVERLAPPING_DISTANCE_FACTOR = 1.0; //totalWeight = weightFactor * weight + distanceFactor * distanceWeight
-export const OBJECT_TIME_TO_LIVE = 1000;    //Maximum age of object, without any touches
+export const OBJECT_TIME_TO_LIVE = 2000;    //Maximum age of object, without any touches
+export const REDUCE_DANGLING_TTL = 0.5;
 
 export default class ObjectDetectionService {
     /**
@@ -28,7 +30,7 @@ export default class ObjectDetectionService {
 
         //2) Kill timed out objects
         previousObjectsArray = previousObjectsArray.filter(item => {
-            return item.lastSeen + OBJECT_TIME_TO_LIVE > time;
+            return item.lastSeen + item.timeToLive > time;
         });
 
         //3) For each object definition try to find list of candidates
@@ -49,12 +51,11 @@ export default class ObjectDetectionService {
                         existingObject.x = result.x;
                         existingObject.y = result.y;
                         existingObject.lastSeen = time;
-                        newObjects.push(existingObject);
                     } else {
-
-                        //TODO: Consider reducing existing objects TTL, if there is new object not overlapping existing one
-
+                        //Reduce existing object ttl if we have new object, not overlapping with the existing one
+                        existingObject.timeToLive = existingObject.timeToLive * REDUCE_DANGLING_TTL;
                     }
+                    newObjects.push(existingObject);
                 } else {
                     //New object, get the fittest and we are done
                     result = this.reduceDetectionResultToFittestObject(result);
@@ -66,6 +67,7 @@ export default class ObjectDetectionService {
                         detectedObject.y = result.y;
                         detectedObject.firstSeen = time;
                         detectedObject.lastSeen = time;
+                        detectedObject.timeToLive = OBJECT_TIME_TO_LIVE;
                         newObjects.push(detectedObject);
                     }
                 }
@@ -79,6 +81,29 @@ export default class ObjectDetectionService {
         newObjects = this.processCollisions(newObjects);
 
         return newObjects;
+    }
+
+    /**
+     * @param {TouchPoint[]} points
+     * @param {ObjectDefinition[]} objectDefinitionsArray
+     * @returns {DetectedObject[]}
+     */
+    detectObjectsRaw(points, objectDefinitionsArray) {
+        if (!objectDefinitionsArray) {
+            return;
+        }
+        const pointDistances = this.calculatePointDistances(points);
+
+        const objects = [];
+        for (const def of objectDefinitionsArray) {
+            const result = this.detectObject(def, pointDistances);
+            if (result.length > 0) {
+                for (const resultElement of result) {
+                    objects.push(this.getDetectedPosition(resultElement, points));
+                }
+            }
+        }
+        return objects;
     }
 
     /**
@@ -190,13 +215,17 @@ export default class ObjectDetectionService {
      * @returns {?ObjectDetectionResult2}
      */
     reduceDetectionResultToFittestOverlappingObject(detectionResultsArray, existingObject) {
-        return detectionResultsArray.reduce((p, v) => {
+        const fittestObject =  detectionResultsArray.reduce((p, v) => {
             const distance = this.calculateDistance(v.x, v.y, existingObject.x, existingObject.y);
             const dstWeight = (POSITIVE_OVERLAP_THRESHOLD - Math.min(distance, POSITIVE_OVERLAP_THRESHOLD)) / POSITIVE_OVERLAP_THRESHOLD;
             const weight = (FITTEST_OVERLAPPING_WEIGHT_FACTOR * v.weight)
                 + (FITTEST_OVERLAPPING_DISTANCE_FACTOR * dstWeight);
             return (p > weight ? p : v);
         }, 0);
+        if (this.calculateDistance(fittestObject.x, fittestObject.y, existingObject.x, existingObject.y) < POSITIVE_OVERLAP_THRESHOLD) {
+            return fittestObject;
+        }
+        return null;
     }
 
     /**
@@ -261,6 +290,11 @@ export default class ObjectDetectionService {
         return weight / 3.0;
     }
 
+    /**
+     * @param {ObjectDetectionResult} detectionResult
+     * @param {TouchPoint[]} touchPoints
+     * @returns {DetectedObject}
+     */
     getDetectedPosition(detectionResult, touchPoints) {
 
         let x = touchPoints[detectionResult.i].x + touchPoints[detectionResult.j].x + touchPoints[detectionResult.k].x;
@@ -301,17 +335,29 @@ export default class ObjectDetectionService {
     }
 
     /**
-     * TODO: In cases when newer active object collides with dangling older object have to delete older dangling object.
-     * Consider to factor into calculation object ages and lastSeen parameters.
-     * May be collision detection should be implemented as separate pass?
-     *
      * @param {DetectedObject[]} detectedObjects
      * @returns {DetectedObject[]}
      */
     processCollisions(detectedObjects) {
-
-
-
+        if (detectedObjects.length > 1) {
+            const objects = [];
+            for (let i = 0; i < detectedObjects.length; i++) {
+                let isValid = true;
+                for (let j = 0; j < detectedObjects.length; j++) {
+                    if (i !== j) {
+                        if (this.calculateDistance(detectedObjects[i].x, detectedObjects[i].y, detectedObjects[j].x, detectedObjects[j].y) < COLLISION_OVERLAP_THRESHOLD) {
+                            if (detectedObjects[i].lastSeen < detectedObjects[j].lastSeen) {
+                                isValid = false;
+                            }
+                        }
+                    }
+                }
+                if (isValid) {
+                    objects.push(detectedObjects[i]);
+                }
+            }
+            return objects;
+        }
         return detectedObjects;
     }
 

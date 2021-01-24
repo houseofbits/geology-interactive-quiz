@@ -10,6 +10,7 @@
                 <button v-if="objectDefinition" class="btn btn-success m-1" type="button" @click="saveObjectDefinition">
                     Add
                 </button>
+                <button class="btn btn-danger m-1" type="button" @click="clearBuffers">Clear buffers</button>
             </div>
             <div class="row m-0 mt-2">
                 <div class="col-2 pl-1">
@@ -80,6 +81,11 @@
                 </div>
                 <div v-if="objectDefinitionsArray.length > 0" class="col-5 pl-1">
                     <table class="table table-bordered table-sm table-dark table-striped">
+                        <thead>
+                        <tr>
+                            <th colspan="4">Object definitions</th>
+                        </tr>
+                        </thead>
                         <tbody>
                         <tr v-for="(def, index) in objectDefinitionsArray" :key="index">
                             <td>{{ def.id }}</td>
@@ -138,17 +144,12 @@ html {
 
 import TouchPoint from "./Stuctures/TouchPoint";
 import ObjectDetectionService from './Services/ObjectDetectionService.js';
-import ObjectDefinition from "./Stuctures/ObjectDefinition";
 
 export default {
     name: 'MainView',
     data() {
         return {
-            touches: [
-                // new TouchPoint(100, 100),
-                // new TouchPoint(200, 200),
-                // new TouchPoint(300, 100),
-            ],
+            touches: [],
             detectedObjects: [],
             objects: [],    //Debug detected objects
             objectDefinition: null,
@@ -167,45 +168,12 @@ export default {
             return 'transform:translate(' + detectedPosition.x + 'px,' + detectedPosition.y + 'px)';
         },
         detectSmart() {
-
-            // const points = [
-            //     //obj-1
-            //     new TouchPoint(382, 478),
-            //     new TouchPoint(274, 434),
-            //     new TouchPoint(293, 383),
-            //
-            //     //overlapping obj-0
-            //     new TouchPoint(384, 434),
-            //     new TouchPoint(446, 321),
-            //     new TouchPoint(378, 317),
-            //
-            // ];
-
-            const service1 = new ObjectDetectionService();
-            this.detectedObjects = service1.detectObjects(this.time, this.touches, this.objectDefinitionsArray, this.detectedObjects);
+            const service = new ObjectDetectionService();
+            this.detectedObjects = service.detectObjects(this.time, this.touches, this.objectDefinitionsArray, this.detectedObjects);
         },
         detect() {
-            if (!this.objectDefinitionsArray) {
-                return;
-            }
             const service = new ObjectDetectionService();
-            this.pointDistances = service.calculatePointDistances(this.touches);
-
-            this.objects = [];
-            for (const def of this.objectDefinitionsArray) {
-                const result = service.detectObject(def, this.pointDistances);
-                if (result.length > 0) {
-                    // const res = result.reduce((p, v) => {
-                    //     return (p > v.weight ? p : v);
-                    // }, 0);
-                    // this.objects.push(service.getDetectedPosition(res, this.touches));
-                    for (const resultElement of result) {
-                        this.objects.push(service.getDetectedPosition(resultElement, this.touches));
-                    }
-                }
-            }
-
-
+            this.objects = service.detectObjectsRaw(this.touches, this.objectDefinitionsArray);
         },
         calibrate() {
             this.objects = [];
@@ -229,6 +197,11 @@ export default {
                 }
                 this.time += 16;
             }, 16);
+        },
+        clearBuffers() {
+            this.objects = [];
+            this.detectedObjects = [];
+            this.touches = [];
         }
     },
     mounted() {

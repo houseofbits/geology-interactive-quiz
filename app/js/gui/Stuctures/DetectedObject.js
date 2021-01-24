@@ -10,5 +10,6 @@ export default class DetectedObject {
 
         this.firstSeen = 0;
         this.lastSeen = 0;
+        this.timeToLive = 0;
     }
 }
