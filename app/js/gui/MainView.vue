@@ -2,8 +2,11 @@
     <div class="main-view">
         <div class="container m-0 p-0">
             <div class="row debug m-0 p-0">
-                <button class="btn btn-primary m-1" type="button" @click="detect">Detect</button>
-                <button class="btn btn-secondary m-1" type="button" @click="calibrate">Calibrate</button>
+                <button :class="{'btn-primary': !isSmartDetectOn, 'btn-success':isSmartDetectOn}" class="btn m-1"
+                        type="button" @click="isSmartDetectOn = !isSmartDetectOn">Smart detect
+                    {{ (isSmartDetectOn ? 'ON' : 'OFF') }}
+                </button>
+                <button v-if="touches.length > 0" class="btn btn-secondary m-1" type="button" @click="calibrate">Calibrate</button>
                 <button v-if="objectDefinition" class="btn btn-success m-1" type="button" @click="saveObjectDefinition">
                     Add
                 </button>
@@ -91,8 +94,14 @@
             <div :style="touchPointTransform(touch)" class="touch-element"></div>
         </div>
         <div v-for="(object, index) in objects">
-            <div :style="objectPointTransform(object)" :class="['color-'+object.result.definition.id]" class="object-element">{{ object.result.definition.id }}
+            <div :class="['color-'+object.result.definition.id]" :style="objectPointTransform(object)"
+                 class="object-element">{{ object.result.definition.id }}
                 {{ object.result.weight.toFixed(2) }}
+            </div>
+        </div>
+        <div v-for="(object, index) in detectedObjects">
+            <div :class="['color-'+object.id]" :style="objectPointTransform(object)"
+                 class="object-element">{{ object.id }}
             </div>
         </div>
     </div>
@@ -140,11 +149,14 @@ export default {
                 // new TouchPoint(200, 200),
                 // new TouchPoint(300, 100),
             ],
-            objects: [],
+            detectedObjects: [],
+            objects: [],    //Debug detected objects
             objectDefinition: null,
             objectDefinitionsArray: [],
             pointDistances: [],
-            detectorLoopIntervalId: null
+            detectorLoopIntervalId: null,
+            time: 0,
+            isSmartDetectOn: false
         };
     },
     methods: {
@@ -154,7 +166,24 @@ export default {
         objectPointTransform(detectedPosition) {
             return 'transform:translate(' + detectedPosition.x + 'px,' + detectedPosition.y + 'px)';
         },
+        detectSmart() {
 
+            // const points = [
+            //     //obj-1
+            //     new TouchPoint(382, 478),
+            //     new TouchPoint(274, 434),
+            //     new TouchPoint(293, 383),
+            //
+            //     //overlapping obj-0
+            //     new TouchPoint(384, 434),
+            //     new TouchPoint(446, 321),
+            //     new TouchPoint(378, 317),
+            //
+            // ];
+
+            const service1 = new ObjectDetectionService();
+            this.detectedObjects = service1.detectObjects(this.time, this.touches, this.objectDefinitionsArray, this.detectedObjects);
+        },
         detect() {
             if (!this.objectDefinitionsArray) {
                 return;
@@ -177,7 +206,6 @@ export default {
             }
 
 
-
         },
         calibrate() {
             this.objects = [];
@@ -192,14 +220,22 @@ export default {
             }
         },
         runDetectionLoop() {
-            this.detectorLoopIntervalId = setInterval(this.detect, 16);
+            //this.detectorLoopIntervalId = setInterval(this.detect, 16);
+            this.detectorLoopIntervalId = setInterval(() => {
+                if (this.isSmartDetectOn) {
+                    this.detectSmart();
+                } else {
+                    this.detect();
+                }
+                this.time += 16;
+            }, 16);
         }
     },
     mounted() {
         document.addEventListener('touchstart', function (event) {
-            for (const touch of event.touches) {
-                this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
-            }
+            // for (const touch of event.touches) {
+            //     this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
+            // }
             //this.detect();
         }.bind(this), false);
         document.addEventListener('touchend', function (event) {
@@ -211,7 +247,6 @@ export default {
             }
             //this.detect();
         }.bind(this), false);
-
 
         //To disable context menu
         window.addEventListener("contextmenu", function (e) {
@@ -274,9 +309,11 @@ export default {
         &.color-0 {
             background-color: rgba(0, 255, 0, 0.5);
         }
+
         &.color-1 {
             background-color: rgba(0, 183, 255, 0.5);
         }
+
         &.color-2 {
             background-color: rgba(255, 51, 0, 0.5);
         }
