@@ -20,15 +20,27 @@
 }
 .main-view .object-element[data-v-008b6a6c] {
     position: absolute;
-    width: 160px;
-    height: 160px;
-    background-color: rgba(0, 255, 0, 0.4);
+    width: 180px;
+    height: 180px;
     border: solid 1px white;
     left: 0;
     top: 0;
-    margin-left: -80px;
-    margin-top: -80px;
+    margin-left: -90px;
+    margin-top: -90px;
     border-radius: 50%;
+    color: white;
+    text-align: center;
+    line-height: 80px;
+    font-size: 20px;
+}
+.main-view .object-element.color-0[data-v-008b6a6c] {
+      background-color: rgba(0, 255, 0, 0.5);
+}
+.main-view .object-element.color-1[data-v-008b6a6c] {
+      background-color: rgba(0, 183, 255, 0.5);
+}
+.main-view .object-element.color-2[data-v-008b6a6c] {
+      background-color: rgba(255, 51, 0, 0.5);
 }
 
 /*!
