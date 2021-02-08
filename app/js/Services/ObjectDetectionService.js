@@ -1,8 +1,8 @@
-import PointDistance from "../Stuctures/PointDistance";
-import ObjectDetectionResult from "../Stuctures/ObjectDetectionResult";
-import DetectedObject from "../Stuctures/DetectedObject";
-import ObjectDefinition from "../Stuctures/ObjectDefinition";
-import ObjectDetectionResult2 from "../Stuctures/ObjectDetectionResult2";
+import PointDistance from "@js/Stuctures/PointDistance";
+import ObjectDetectionResult from "@js/Stuctures/ObjectDetectionResult";
+import DetectedObject from "@js/Stuctures/DetectedObject";
+import ObjectDefinition from "@js/Stuctures/ObjectDefinition";
+import ObjectDetectionResult2 from "@js/Stuctures/ObjectDetectionResult2";
 
 export const NEGATIVE_OVERLAP_THRESHOLD = 80.0;    //Threshold value to consider two different objects as conflicting
 export const POSITIVE_OVERLAP_THRESHOLD = 160.0;   //Threshold value to consider two objects of same type as equal

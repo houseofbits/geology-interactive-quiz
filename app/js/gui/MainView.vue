@@ -142,8 +142,8 @@ html {
 *
 * */
 
-import TouchPoint from "./Stuctures/TouchPoint";
-import ObjectDetectionService from './Services/ObjectDetectionService.js';
+import TouchPoint from "@js/Stuctures/TouchPoint";
+import ObjectDetectionService from '@js/Services/ObjectDetectionService';
 
 export default {
     name: 'MainView',
