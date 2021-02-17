@@ -229,11 +229,36 @@ export default {
 
         const service = new ObjectDetectionService();
 
+        // this.objectDefinitionsArray.push(
+        //     service.createObjectDefinition(0, 68, 116, 131, 5)
+        // );
+        // this.objectDefinitionsArray.push(
+        //     service.createObjectDefinition(1, 57, 116, 129, 5)
+        // );
+
         this.objectDefinitionsArray.push(
-            service.createObjectDefinition(0, 68, 116, 131, 5)
+            service.createObjectDefinition(1, 63.8, 53.8, 97.4, 5)
         );
         this.objectDefinitionsArray.push(
-            service.createObjectDefinition(1, 57, 116, 129, 5)
+            service.createObjectDefinition(2, 63.8, 67.2, 84.0, 5)
+        );
+        this.objectDefinitionsArray.push(
+            service.createObjectDefinition(3, 63.8, 84.0, 90.7, 5)
+        );
+        this.objectDefinitionsArray.push(
+            service.createObjectDefinition(4, 63.8, 97.4, 100.8, 5)
+        );
+        this.objectDefinitionsArray.push(
+            service.createObjectDefinition(5, 63.84, 53.76, 67.2, 5)
+        );
+        this.objectDefinitionsArray.push(
+            service.createObjectDefinition(6, 53.76, 67.2, 84.0, 5)
+        );
+        this.objectDefinitionsArray.push(
+            service.createObjectDefinition(7, 53.76, 84.0, 94.08, 5)
+        );
+        this.objectDefinitionsArray.push(
+            service.createObjectDefinition(8, 53.76, 97.44, 104.16, 5)
         );
 
         this.runDetectionLoop();
@@ -280,16 +305,36 @@ export default {
         line-height: 80px;
         font-size: 20px;
 
-        &.color-0 {
-            background-color: rgba(0, 255, 0, 0.5);
-        }
-
         &.color-1 {
-            background-color: rgba(0, 183, 255, 0.5);
+            background-color: rgba(255, 157, 0, 0.5);
         }
 
         &.color-2 {
-            background-color: rgba(255, 51, 0, 0.5);
+            background-color: rgba(226, 255, 0, 0.5);
+        }
+
+        &.color-3 {
+            background-color: rgba(0, 255, 66, 0.5);
+        }
+
+        &.color-4 {
+            background-color: rgba(0, 249, 255, 0.5);
+        }
+
+        &.color-5 {
+            background-color: rgba(133, 0, 255, 0.5);
+        }
+
+        &.color-6 {
+            background-color: rgba(0, 122, 255, 0.5);
+        }
+
+        &.color-7 {
+            background-color: rgba(255, 0, 176, 0.5);
+        }
+
+        &.color-8 {
+            background-color: rgba(255, 0, 0, 0.5);
         }
     }
 
