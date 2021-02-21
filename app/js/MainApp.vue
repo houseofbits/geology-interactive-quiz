@@ -8,6 +8,23 @@ name: "MainApp"
 }
 </script>
 
-<style scoped>
+<style lang="scss">
 
+@import "~/bootstrap/bootstrap.scss";
+
+html {
+    touch-action: none;
+}
+
+@font-face {
+    font-family: "customFont";
+    src: url("../fonts/font.ttf");
+}
+
+body {
+    font-family: "customFont", serif;
+    user-select: none;
+    background-color: darkgray;
+    overflow: hidden;
+}
 </style>

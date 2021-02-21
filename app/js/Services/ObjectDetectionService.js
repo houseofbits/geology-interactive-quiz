@@ -1,3 +1,4 @@
+import _ from 'lodash';
 import PointDistance from "@js/Stuctures/PointDistance";
 import ObjectDetectionResult from "@js/Stuctures/ObjectDetectionResult";
 import DetectedObject from "@js/Stuctures/DetectedObject";
@@ -11,6 +12,17 @@ export const FITTEST_OVERLAPPING_WEIGHT_FACTOR = 1.0;   //Factors to define fitt
 export const FITTEST_OVERLAPPING_DISTANCE_FACTOR = 1.0; //totalWeight = weightFactor * weight + distanceFactor * distanceWeight
 export const OBJECT_TIME_TO_LIVE = 2000;    //Maximum age of object, without any touches
 export const REDUCE_DANGLING_TTL = 0.5;
+
+const ObjectDefinitionParams = [
+    {id: 1, a:63.8, b:53.8, c:97.4, err:5},
+    {id: 2, a:63.8, b:67.2, c:84.0, err:5},
+    {id: 3, a:63.8, b:84.0, c:90.7, err:5},
+    {id: 4, a:63.8, b:97.4, c:100.8, err:5},
+    {id: 5, a:63.84, b:53.76, c:67.2, err:5},
+    {id: 6, a:53.76, b:67.2, c:84.0, err:5},
+    {id: 7, a:53.76, b:84.0, c:94.08, err:5},
+    {id: 8, a:53.76, b:97.44, c:104.16, err:5}
+];
 
 export default class ObjectDetectionService {
     /**
@@ -360,5 +372,51 @@ export default class ObjectDetectionService {
         }
         return detectedObjects;
     }
+
+    /**
+     * @returns {Array}
+     */
+    getObjectDefinitions() {
+        return ObjectDefinitionParams.map(param => this.createObjectDefinition(param.id, param.a, param.b, param.c, param.err));
+    }
+
+    /**
+     * @param {DetectedObject} detectionResult
+     * @param {DetectionFeature} feature
+     * @returns {Boolean}
+     */
+    isDetectionResultIntersectedWithFeature(detectionResult, feature) {
+
+        if (detectionResult.x < feature.minx) {
+            return false;
+        }
+        if (detectionResult.y < feature.miny) {
+            return false;
+        }
+        if (detectionResult.x > feature.maxx) {
+            return false;
+        }
+        if (detectionResult.y > feature.maxy) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * @param {DetectedObject[]} results
+     * @param {DetectionFeature} feature
+     */
+    matchDetectedWithFeature(results, feature) {
+        const matched = [];
+        for (const result of results) {
+            if (this.isDetectionResultIntersectedWithFeature(result, feature)) {
+                matched.push(result);
+            }
+        }
+        return matched;
+    }
+
+
 
 }

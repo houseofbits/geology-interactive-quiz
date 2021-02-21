@@ -236,30 +236,7 @@ export default {
         //     service.createObjectDefinition(1, 57, 116, 129, 5)
         // );
 
-        this.objectDefinitionsArray.push(
-            service.createObjectDefinition(1, 63.8, 53.8, 97.4, 5)
-        );
-        this.objectDefinitionsArray.push(
-            service.createObjectDefinition(2, 63.8, 67.2, 84.0, 5)
-        );
-        this.objectDefinitionsArray.push(
-            service.createObjectDefinition(3, 63.8, 84.0, 90.7, 5)
-        );
-        this.objectDefinitionsArray.push(
-            service.createObjectDefinition(4, 63.8, 97.4, 100.8, 5)
-        );
-        this.objectDefinitionsArray.push(
-            service.createObjectDefinition(5, 63.84, 53.76, 67.2, 5)
-        );
-        this.objectDefinitionsArray.push(
-            service.createObjectDefinition(6, 53.76, 67.2, 84.0, 5)
-        );
-        this.objectDefinitionsArray.push(
-            service.createObjectDefinition(7, 53.76, 84.0, 94.08, 5)
-        );
-        this.objectDefinitionsArray.push(
-            service.createObjectDefinition(8, 53.76, 97.44, 104.16, 5)
-        );
+        this.objectDefinitionsArray = service.getObjectDefinitions();
 
         this.runDetectionLoop();
 
@@ -338,26 +315,5 @@ export default {
         }
     }
 
-}
-</style>
-
-<style lang="scss">
-
-@import "~/bootstrap/bootstrap.scss";
-
-html {
-    touch-action: none;
-}
-
-@font-face {
-    font-family: "customFont";
-    src: url("../../fonts/font.ttf");
-}
-
-body {
-    font-family: "customFont", serif;
-    user-select: none;
-    background-color: darkgray;
-    overflow: hidden;
 }
 </style>
