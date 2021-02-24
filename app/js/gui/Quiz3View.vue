@@ -1,18 +1,30 @@
 <template>
     <div class="screen">
-        <span class="title">Pievieno pareizo nosaukumu</span>
 
-        <div :class="{green: isAnswerCorrect(0), red: isAnswerIncorrect(0)}" class="active-area pos-1">Nogāze</div>
-        <div :class="{green: isAnswerCorrect(1), red: isAnswerIncorrect(1)}" class="active-area pos-2">Pakāje</div>
-        <div :class="{green: isAnswerCorrect(2), red: isAnswerIncorrect(2)}" class="active-area pos-3">Delta</div>
-        <div :class="{green: isAnswerCorrect(3), red: isAnswerIncorrect(3)}" class="active-area pos-4">Estuārs</div>
-        <div :class="{green: isAnswerCorrect(4), red: isAnswerIncorrect(4)}" class="active-area pos-5">Deltas nogāze</div>
+        <quiz-page
+            v-for="(n, index) in 8" :key="index"
+            :finished="isPageFinished"
+            :selected="index===selectedQuestion"
+            :title="text[index].title"
+            :hint1="text[index].hint1"
+            :hint2="text[index].hint2"
+            :is-correct-answer="isCorrectAnswer"
+            :number-of-errors="numberOfIncorrectAnswers"
+            :class="pageClass(index)"
+        />
 
         <div v-for="(object, index) in detectedObjects">
             <div :class="['color-'+object.id]" :style="objectPointTransform(object)"
                  class="object-element">{{ object.id }}
             </div>
         </div>
+
+        <div class="overview-row">
+            <div v-for="(state, i) in pageAnswers" class="item" :class="iconClass(state, i)">
+                {{ iconText(state, i) }}
+            </div>
+        </div>
+
     </div>
 </template>
 
@@ -21,15 +33,20 @@
 import TouchPoint from "@js/Stuctures/TouchPoint";
 import ObjectDetectionService from '@js/Services/ObjectDetectionService';
 import DetectionFeature from "@js/Stuctures/DetectionFeature";
+import QuizPage from "@js/gui/QuizPage.vue";
+import TextLV from "@json/quiz3-text-lv.json";
 
 const detectionService = new ObjectDetectionService();
 
 const ActiveFeatures = [
-    new DetectionFeature(8, 100, 150, 300, 350),
-    new DetectionFeature(7, 250, 450, 450, 650),
-    new DetectionFeature(3, 550, 450, 750, 650),
-    new DetectionFeature(3, 400, 150, 600, 350),
-    new DetectionFeature(3, 700, 150, 900, 350)
+    new DetectionFeature(1, 100, 400, 920, 720),
+    new DetectionFeature(2, 100, 400, 920, 720),
+    new DetectionFeature(3, 100, 400, 920, 720),
+    new DetectionFeature(4, 100, 400, 920, 720),
+    new DetectionFeature(5, 100, 400, 920, 720),
+    new DetectionFeature(6, 100, 400, 920, 720),
+    new DetectionFeature(7, 100, 400, 920, 720),
+    new DetectionFeature(8, 100, 400, 920, 720)
 ];
 
 const AnswerState = {
@@ -40,14 +57,27 @@ const AnswerState = {
 
 export default {
     name: "Quiz3View",
+    components:{
+        QuizPage
+    },
     data() {
         return {
+            isDisabled: true,
             touches: [],
             detectedObjects: [],
             objectDefinitionsArray: [],
             detectorLoopIntervalId: null,
             time: 0,
-            answerState: [
+            selectedQuestion: 0,
+            isCorrectAnswer: false,
+            numberOfIncorrectAnswers: 0,
+            answerId: null,
+            wrongAnswers: [],
+            isPageFinished: false,
+            pageAnswers: [
+                AnswerState.UNKNOWN,
+                AnswerState.UNKNOWN,
+                AnswerState.UNKNOWN,
                 AnswerState.UNKNOWN,
                 AnswerState.UNKNOWN,
                 AnswerState.UNKNOWN,
@@ -56,19 +86,84 @@ export default {
             ]
         };
     },
-    methods: {
-        isAnswerCorrect(i) {
-            return this.answerState[i] === AnswerState.CORRECT;
+    watch:{
+        answerId(id) {
+            if (id === null) {
+                return;
+            }
+            const featureId = ActiveFeatures[this.selectedQuestion].id;
+            if (id === featureId) {
+                this.isCorrectAnswer = true;
+                this.continueNextDelayed();
+            } else {
+                if (!this.wrongAnswers.includes(id)) {
+                    this.numberOfIncorrectAnswers++;
+                    if (this.numberOfIncorrectAnswers > 2) {
+                        this.continueNextDelayed();
+                    }
+                    this.wrongAnswers.push(id);
+                }
+            }
+        }
+    },
+    computed:{
+        isAnswerCorrect() {
+            const featureId = ActiveFeatures[this.selectedQuestion].id;
+            return this.answerId === featureId;
         },
-        isAnswerIncorrect(i) {
-            return this.answerState[i] === AnswerState.INCORRECT;
+        isAnswerIncorrect() {
+            if (this.answerId === null) {
+                return false;
+            }
+            const featureId = ActiveFeatures[this.selectedQuestion].id;
+            return this.answerId !== featureId;
+        },
+        text() {
+            return TextLV;
+        }
+    },
+    methods: {
+        iconClass(state, index) {
+            const classes = [];
+            if (this.selectedQuestion === index) {
+                classes.push('selected');
+            }
+            if (state === AnswerState.CORRECT) {
+                classes.push('correct');
+            }
+            if (state === AnswerState.INCORRECT) {
+                classes.push('incorrect');
+            }
+            return classes;
+        },
+        iconText(state, index) {
+            if (state === AnswerState.CORRECT) {
+                return this.text[index].answer;
+            }
+            if (index < this.selectedQuestion) {
+                return '?';
+            }
+            return '';
+        },
+        pageClass(i) {
+            if (i < this.selectedQuestion) {
+                return 'page-out';
+            }
+            if (i === this.selectedQuestion) {
+                return 'page-active';
+            }
+            if (i > this.selectedQuestion) {
+                return 'page-in';
+            }
         },
         objectPointTransform(detectedPosition) {
             return 'transform:translate(' + detectedPosition.x + 'px,' + detectedPosition.y + 'px)';
         },
         detectSmart() {
-            this.detectedObjects = detectionService.detectObjects(this.time, this.touches, this.objectDefinitionsArray, this.detectedObjects);
-            this.checkForAnswer();
+            if (!this.isDisabled) {
+                this.detectedObjects = detectionService.detectObjects(this.time, this.touches, this.objectDefinitionsArray, this.detectedObjects);
+                this.checkForAnswer();
+            }
         },
         runDetectionLoop() {
             this.detectorLoopIntervalId = setInterval(() => {
@@ -77,29 +172,59 @@ export default {
             }, 16);
         },
         checkForAnswer() {
-            this.answerState[0] = AnswerState.UNKNOWN;
-            this.answerState[1] = AnswerState.UNKNOWN;
-            this.answerState[2] = AnswerState.UNKNOWN;
-            this.answerState[3] = AnswerState.UNKNOWN;
-            this.answerState[4] = AnswerState.UNKNOWN;
+            let answerId = null;
 
             if (this.detectedObjects.length > 0) {
-                for (let i = 0; i < ActiveFeatures.length; i++) {
-                    let featureResults = detectionService.matchDetectedWithFeature(this.detectedObjects, ActiveFeatures[i]);
-                    if (featureResults.length > 0) {
-                        for (const result of featureResults) {
-                            this.$set(this.answerState,
-                                i,
-                                (result.id === ActiveFeatures[i].id) ? AnswerState.CORRECT : AnswerState.INCORRECT
-                            );
-                        }
+
+                const feature = ActiveFeatures[this.selectedQuestion];
+                let featureResults = detectionService.matchDetectedWithFeature(this.detectedObjects, feature);
+                if (featureResults.length > 0) {
+                    for (const result of featureResults) {
+                        answerId = result.id;
                     }
                 }
             }
+            this.answerId = answerId;
+        },
+        initPage() {
+            this.isCorrectAnswer = false;
+            this.numberOfIncorrectAnswers = 0;
+            this.isPageFinished = false;
+            this.wrongAnswers = [];
+            this.detectedObjects = [];
+            this.touches = [];
+            if (this.selectedQuestion === 0) {
+                this.pageAnswers = [
+                    AnswerState.UNKNOWN,
+                    AnswerState.UNKNOWN,
+                    AnswerState.UNKNOWN,
+                    AnswerState.UNKNOWN,
+                    AnswerState.UNKNOWN,
+                    AnswerState.UNKNOWN,
+                    AnswerState.UNKNOWN,
+                    AnswerState.UNKNOWN
+                ];
+            }
+            this.isDisabled = false;
+        },
+        continueNextDelayed() {
+            this.isDisabled = true;
+            this.isPageFinished = true;
+            if (this.isCorrectAnswer) {
+                this.pageAnswers[this.selectedQuestion] = AnswerState.CORRECT;
+            } else {
+                this.pageAnswers[this.selectedQuestion] = AnswerState.INCORRECT;
+            }
+            setTimeout(this.continueNext, 1000);
+        },
+        continueNext() {
+            this.selectedQuestion = (this.selectedQuestion + 1) % 8;
+            this.initPage();
         }
     },
     mounted() {
         document.addEventListener('touchstart', function (event) {
+            //this.touches = [];
             for (const touch of event.touches) {
                 this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
             }
@@ -122,6 +247,8 @@ export default {
 
         this.runDetectionLoop();
 
+        this.initPage();
+
     }
 }
 </script>
@@ -133,6 +260,19 @@ export default {
     width: 1024px;
     height: 768px;
 
+    .page-out {
+        left:-1024px;
+        transition: all linear 500ms;
+    }
+    .page-active {
+        left: 0;
+        transition: all linear 500ms;
+    }
+    .page-in {
+        left:1024px;
+        transition: all linear 500ms;
+    }
+
     .title {
         display: inline-block;
         width: 100%;
@@ -143,71 +283,41 @@ export default {
         //border: solid 1px red;
     }
 
-    .active-area {
-        position: absolute;
-        width: 200px;
-        height:200px;
-        border-radius: 60px;
-        color:white;
-        font-size: 25px;
+    .overview-row {
+        position:absolute;
+        width: 1024px;
+        height: 150px;
+        left:0;
+        bottom:0;
         text-align: center;
-        line-height: 200px;
-        background: repeating-linear-gradient(
-                45deg,
-                rgba(247, 160, 22, 0.51) 0,
-                rgba(255, 169, 0, 0.77) 20px,
-                rgba(255, 145, 0, 0) 20px,
-                rgba(255, 153, 62, 0) 40px
-        );
-        //Nogāze
-        &.pos-1 {
-            top:150px;
-            left:100px;
-        }
-        //Pakāje
-        &.pos-2 {
-            top:450px;
-            left:250px;
-        }
-        //Delta
-        &.pos-3 {
-            top:450px;
-            left:550px;
-        }
-        //Estuārs
-        &.pos-4 {
-            top:150px;
-            left:400px;
-        }
-        //Deltas nogāze
-        &.pos-5 {
-            top:150px;
-            left:700px;
-        }
 
-        &.green {
-            background: repeating-linear-gradient(
-                    45deg,
-                    rgba(137, 255, 0, 0.6) 0,
-                    rgba(112, 255, 0, 0.66) 20px,
-                    rgba(0, 0, 255, 0) 20px,
-                    rgba(63, 187, 62, 0) 40px
-            );
-            border: solid 10px rgba(112, 255, 0, 0.66);
-        }
+        .item {
+            display: inline-block;
+            line-height: 100px;
+            text-align: center;
+            vertical-align: middle;
+            height:100px;
+            width: 100px;
+            background-color: gray;
+            margin-top: 10px;
+            margin-left: 5px;
+            margin-right: 5px;
+            color: white;
+            font-size: 22px;
+            overflow: hidden;
+            border-radius: 30px;
 
-        &.red {
-            background: repeating-linear-gradient(
-                    45deg,
-                    rgba(255, 96, 0, 0.6) 0,
-                    rgba(255, 96, 0, 0.66) 20px,
-                    rgba(255, 96, 0, 0) 20px,
-                    rgba(255, 96, 0, 0) 40px
-            );
-            border: solid 10px rgba(255, 96, 0, 0.6);
+            &.selected {
+                border: solid 3px yellow;
+            }
+            &.correct {
+                background-color: green;
+            }
+            &.incorrect {
+                background-color: red;
+            }
         }
     }
-
 }
 
 .object-element {

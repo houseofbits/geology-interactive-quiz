@@ -1,0 +1,40 @@
+[
+  {
+    "title": "Nogāze",
+    "description": [
+      "Kalnu masīvu nogāzēs izpaužas ģeoloģiskie procesi - erozija un dēdēšana. Fizikālās dēdēšanas rezultātā rodas plaisas un no kalnu masīva atdalās iežu bloki.",
+      "Gravitācijas iespaidā dažāda izmēra iežu atlūzas pārvietojas no augstākām reljefa vietām uz zemākām."
+    ]
+  },
+  {
+    "title": "Pakāje",
+    "description": [
+      "No iežu masīva atdalījušās iežu atlūzas smaguma spēka ietekmē pārvietojas pa kalna nogāzi uz leju. Nogāzes pakājē uzkrājas dažāda izmēra drupu materiāls.",
+      "Tālāk iežu materiāls nonāk upju gultnēs, kur straumju ietekmē tiek drupināts, šķīdināts, šķirots un pārvietots."
+    ]
+  },
+  {
+    "title": "Delta",
+    "description": [
+      "Gaujas svītas smilšakmeņi. Arīds klimats",
+      "Vidējā devona Gaujas laikposmā visu Latvijas teritoriju klāja sekla jūra. Spēcīgas upju straumes atnesa no Skandināvijas kalniem daudz nogulu. Plūdmaiņu (paisuma un bēguma) straumju iespaidā deltā uzkrājās smilšaini nogulumi.",
+      "Ūdens līmenis jūrā pazeminājās, un seno upju ieplūdes vietā attīstījās lēzena un plaša delta, kas laika gaitā aizvien tālāk ievirzījās jūrā."
+    ]
+  },
+  {
+    "title": "Estuārs",
+    "description": [
+      "Sietiņu svītas smilšakmeņi. Humīds klimats",
+      "Sietiņu svītas kvarca smiltis atšķiras no citiem devona smiltsiežiem ar sniegbalto krāsu un zemo dzelzs oksīdu saturu.",
+      "Sietiņu svītas kvarca smilšu graudi izcēlušies senajos ekvatoriālajos sauszemes apgabalos.",
+      "Sietiņu svītas smiltis ir uzkrājušās tajā devona deltu zonas daļā, kas tagad atrodas Latvijas ziemeļaustrumos."
+    ]
+  },
+  {
+    "title": "Deltas nogāze",
+    "description": [
+      "Ķīmiskās dēdēšanas rezultātā jūrās nonāk daudz mālainu nogulu. Deltas nogāzē nogulas atrodas nestabilā stāvoklī. Nogulu masa noslīd, veidojot zemūdens noslīdeņu depresijas un kanjonus.",
+      "Devona periodā senās deltas dziļākajās ieplakās ūdeņi bija mazkustīgi, tāpēc izgulsnējās mālaini aleirītisks materiāls, izveidojot lēcas smilšakmenī."
+    ]
+  }
+]

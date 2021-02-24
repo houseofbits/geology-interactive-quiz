@@ -2,11 +2,16 @@
     <div class="screen">
         <span class="title">Atpazīsti vietas</span>
 
-        <div :class="{green: isAnswerCorrect(0), red: isAnswerIncorrect(0)}" class="active-area pos-1">Nogāze</div>
-        <div :class="{green: isAnswerCorrect(1), red: isAnswerIncorrect(1)}" class="active-area pos-2">Pakāje</div>
-        <div :class="{green: isAnswerCorrect(2), red: isAnswerIncorrect(2)}" class="active-area pos-3">Delta</div>
-        <div :class="{green: isAnswerCorrect(3), red: isAnswerIncorrect(3)}" class="active-area pos-4">Estuārs</div>
-        <div :class="{green: isAnswerCorrect(4), red: isAnswerIncorrect(4)}" class="active-area pos-5">Deltas nogāze</div>
+        <div :class="{green: isAnswerCorrect(0)}" class="active-area pos-1">{{ text[0].title }}</div>
+        <div :class="{green: isAnswerCorrect(1)}" class="active-area pos-2">{{ text[1].title }}</div>
+        <div :class="{green: isAnswerCorrect(2)}" class="active-area pos-3">{{ text[2].title }}</div>
+        <div :class="{green: isAnswerCorrect(3)}" class="active-area pos-4">{{ text[3].title }}</div>
+        <div :class="{green: isAnswerCorrect(4)}" class="active-area pos-5">{{ text[4].title }}</div>
+
+        <div class="details" v-if="selectedAnswer !== null">
+            <span class="text">{{ text[selectedAnswer].title }}</span>
+            <span class="text" v-for="val in text[selectedAnswer].description">{{ val }}</span>
+        </div>
 
         <div v-for="(object, index) in detectedObjects">
             <div :class="['color-'+object.id]" :style="objectPointTransform(object)"
@@ -21,6 +26,7 @@
 import TouchPoint from "@js/Stuctures/TouchPoint";
 import ObjectDetectionService from '@js/Services/ObjectDetectionService';
 import DetectionFeature from "@js/Stuctures/DetectionFeature";
+import TextLV from "@json/quiz2-text-lv.json";
 
 const detectionService = new ObjectDetectionService();
 
@@ -42,26 +48,33 @@ export default {
     name: "Quiz2View",
     data() {
         return {
+            isDisabled: false,
             touches: [],
             detectedObjects: [],
             objectDefinitionsArray: [],
             detectorLoopIntervalId: null,
             time: 0,
-            answerState: [
-                AnswerState.UNKNOWN,
-                AnswerState.UNKNOWN,
-                AnswerState.UNKNOWN,
-                AnswerState.UNKNOWN,
-                AnswerState.UNKNOWN
-            ]
+            selectedAnswer: null,
+            answerIndex: null,
         };
+    },
+    watch: {
+        answerIndex(id) {
+            // this.isDisabled = true;
+            // if (id === null) {
+            //     return;
+            // }
+            this.selectedAnswer = this.answerIndex;
+        }
+    },
+    computed: {
+        text() {
+            return TextLV;
+        },
     },
     methods: {
         isAnswerCorrect(i) {
-            return this.answerState[i] === AnswerState.CORRECT;
-        },
-        isAnswerIncorrect(i) {
-            return this.answerState[i] === AnswerState.INCORRECT;
+            return this.selectedAnswer === i;
         },
         objectPointTransform(detectedPosition) {
             return 'transform:translate(' + detectedPosition.x + 'px,' + detectedPosition.y + 'px)';
@@ -77,24 +90,21 @@ export default {
             }, 16);
         },
         checkForAnswer() {
-            this.answerState[0] = AnswerState.UNKNOWN;
-            this.answerState[1] = AnswerState.UNKNOWN;
-            this.answerState[2] = AnswerState.UNKNOWN;
-            this.answerState[3] = AnswerState.UNKNOWN;
-            this.answerState[4] = AnswerState.UNKNOWN;
-
-            if (this.detectedObjects.length > 0) {
-                for (let i = 0; i < ActiveFeatures.length; i++) {
-                    let featureResults = detectionService.matchDetectedWithFeature(this.detectedObjects, ActiveFeatures[i]);
-                    if (featureResults.length > 0) {
-                        for (const result of featureResults) {
-                            this.$set(this.answerState,
-                                i,
-                                (result.id === ActiveFeatures[i].id) ? AnswerState.CORRECT : AnswerState.INCORRECT
-                            );
+            if (!this.isDisabled) {
+                let answerIndex = null;
+                if (this.detectedObjects.length > 0) {
+                    for (let i = 0; i < ActiveFeatures.length; i++) {
+                        let featureResults = detectionService.matchDetectedWithFeature(this.detectedObjects, ActiveFeatures[i]);
+                        if (featureResults.length > 0) {
+                            for (const result of featureResults) {
+                                if (result.id === ActiveFeatures[i].id) {
+                                    answerIndex = i;
+                                }
+                            }
                         }
                     }
                 }
+                this.answerIndex = answerIndex;
             }
         }
     },
@@ -105,6 +115,7 @@ export default {
             }
         }.bind(this), false);
         document.addEventListener('touchend', function (event) {
+            this.touches = [];
         }, false);
         document.addEventListener('touchmove', function (event) {
             this.touches = [];
@@ -141,6 +152,25 @@ export default {
         font-size: 30px;
         line-height: 80px;
         //border: solid 1px red;
+    }
+
+    .details {
+        position: absolute;
+        background-color: rgba(100,100,100,0.7);
+        top: 200px;
+        bottom: 200px;
+        left: 100px;
+        right: 100px;
+        color: white;
+
+        .text {
+            font-size: 22px;
+            display: inline-block;
+            width: 100%;
+            padding-right: 30px;
+            padding-left: 30px;
+            padding-top: 30px;
+        }
     }
 
     .active-area {
