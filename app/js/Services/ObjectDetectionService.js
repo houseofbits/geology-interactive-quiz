@@ -12,16 +12,17 @@ export const FITTEST_OVERLAPPING_WEIGHT_FACTOR = 1.0;   //Factors to define fitt
 export const FITTEST_OVERLAPPING_DISTANCE_FACTOR = 1.0; //totalWeight = weightFactor * weight + distanceFactor * distanceWeight
 export const OBJECT_TIME_TO_LIVE = 500;    //Maximum age of object, without any touches
 export const REDUCE_DANGLING_TTL = 0.1;
+export const DEFAULT_ERROR = 5.0;
 
 const ObjectDefinitionParams = [
-    {id: 1, a:63.8, b:53.8, c:97.4, err:5},
-    {id: 2, a:63.8, b:67.2, c:84.0, err:5},
-    {id: 3, a:63.8, b:84.0, c:90.7, err:5},
-    {id: 4, a:63.8, b:97.4, c:100.8, err:5},
-    {id: 5, a:63.84, b:53.76, c:67.2, err:5},
-    {id: 6, a:53.76, b:67.2, c:84.0, err:5},
-    {id: 7, a:53.76, b:84.0, c:94.08, err:5},
-    {id: 8, a:53.76, b:97.44, c:104.16, err:5}
+    {id: 1, a:63.8, b:53.8, c:97.4, err:DEFAULT_ERROR},
+    {id: 2, a:63.8, b:67.2, c:84.0, err:DEFAULT_ERROR},
+    {id: 3, a:63.8, b:84.0, c:90.7, err:DEFAULT_ERROR},
+    {id: 4, a:63.8, b:97.4, c:100.8, err:DEFAULT_ERROR},
+    {id: 5, a:63.84, b:53.76, c:67.2, err:DEFAULT_ERROR},
+    {id: 6, a:53.76, b:67.2, c:84.0, err:DEFAULT_ERROR},
+    {id: 7, a:53.76, b:84.0, c:94.08, err:DEFAULT_ERROR},
+    {id: 8, a:53.76, b:97.44, c:104.16, err:DEFAULT_ERROR}
 ];
 
 export default class ObjectDetectionService {

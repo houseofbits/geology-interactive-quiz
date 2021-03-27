@@ -126,7 +126,7 @@ html {
   touch-action:none;
 }
 *
-* chrome.exe --kiosk --incognito --disable-pinch --overscroll-history-navigation=0
+* chrome --kiosk --incognito --disable-pinch --overscroll-history-navigation=0
 *
 *   1) Install gnome extension: sudo apt-get install chrome-gnome-shell
 *   2) Open in Chroms: https://extensions.gnome.org/extension/1140/disable-gestures/
