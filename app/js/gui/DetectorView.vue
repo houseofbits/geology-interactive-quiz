@@ -146,7 +146,7 @@ import TouchPoint from "@js/Stuctures/TouchPoint";
 import ObjectDetectionService from '@js/Services/ObjectDetectionService';
 
 export default {
-    name: 'MainView',
+    name: 'DetectorView',
     data() {
         return {
             touches: [],
