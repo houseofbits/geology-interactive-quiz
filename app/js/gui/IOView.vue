@@ -78,7 +78,7 @@ export default {
         setPortPin(port, pin, callback) {
             const pinName = 'pin' + pin;
             const state = this.isPinSelected(port, pin) ? 1 : 0;
-            axios.get('raspberry.pi/set-port-pins', {
+            axios.get('http://raspberry.pi:8888/set-port-pins', {
                 params: {
                     port: port,
                     [pinName]: state
