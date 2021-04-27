@@ -1,6 +1,6 @@
-##Setup of kiosk PC based on Ubuntu 20.04
+## Setup of kiosk PC based on Ubuntu 20.04
 
-###Common information
+### Common information
 **Location to web application:**    
 ```/var/www/application/geology-interactive-quiz```
     
@@ -24,7 +24,7 @@ MAC:a8:a1:59:5a:b0:74
 MAC:a8:a1:59:5a:b1:10
 
 
-###Setup
+### Setup
 
 1) Update
 
