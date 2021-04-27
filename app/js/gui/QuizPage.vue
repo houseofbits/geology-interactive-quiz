@@ -70,7 +70,8 @@ export default {
     width: 1024px;
     height: 768px;
     visibility: hidden;
-    background: linear-gradient(to bottom, rgba(30,87,153,1) 0%,rgba(125,185,232,0) 100%);
+    //background: linear-gradient(to bottom, rgba(30,87,153,1) 0%,rgba(125,185,232,0) 100%);
+    background-color: white;
 
     &.green {
         background-color: green;

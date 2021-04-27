@@ -14,15 +14,31 @@
                         </button>
                     </div>
 
-                    <div v-for="columnIndex in 2" :key="columnIndex" class="col-sm text-center">
-                        <h3 class="text-light mt-3">Port 1</h3>
-                        <button v-for="buttonIndex in 8" :class="{'btn-warning': !isPinSelected(1, pinId(columnIndex, buttonIndex)),
-                                'bg-success': isPinSelected(1, pinId(columnIndex, buttonIndex))}"
+                    <div class="col-sm text-center">
+                        <h3 class="text-light mt-3">Lower row</h3>
+                        <button v-for="(pin, index) in lowerRowPins" :class="{'btn-warning': !isPinSelected(0, pin),
+                                    'bg-success': isPinSelected(0, pin)}"
                                 class="btn text-light btn-lg mt-3 btn-block"
-                                @click="togglePin(1, pinId(columnIndex, buttonIndex))">Pin
-                            {{ pinId(columnIndex, buttonIndex) }}
-                        </button>
+                                @click="togglePin(0, pin)">#{{ index + 1 }}</button>
                     </div>
+
+                    <div class="col-sm text-center">
+                        <h3 class="text-light mt-3">Upper row</h3>
+                        <button v-for="(pin, index) in lowerRowPins" :class="{'btn-warning': !isPinSelected(0, pin),
+                                    'bg-success': isPinSelected(0, pin)}"
+                                class="btn text-light btn-lg mt-3 btn-block"
+                                @click="togglePin(0, pin)">#{{ index + 1 }}</button>
+                    </div>
+
+<!--                    <div v-for="columnIndex in 2" :key="columnIndex" class="col-sm text-center">-->
+<!--                        <h3 class="text-light mt-3">Port 1</h3>-->
+<!--                        <button v-for="buttonIndex in 8" :class="{'btn-warning': !isPinSelected(1, pinId(columnIndex, buttonIndex)),-->
+<!--                                'bg-success': isPinSelected(1, pinId(columnIndex, buttonIndex))}"-->
+<!--                                class="btn text-light btn-lg mt-3 btn-block"-->
+<!--                                @click="togglePin(1, pinId(columnIndex, buttonIndex))">Pin-->
+<!--                            {{ pinId(columnIndex, buttonIndex) }}-->
+<!--                        </button>-->
+<!--                    </div>-->
                 </div>
 
             </div>
@@ -41,6 +57,18 @@ export default {
             port0State: [],
             port1State: []
         };
+    },
+    computed: {
+        lowerRowPins() {
+            return [
+                9,8,13,7,10
+            ];
+        },
+        upperRowPins() {
+            return [
+                3,14,15,4,11
+            ];
+        }
     },
     methods: {
         isPinSelected(port, pin) {
@@ -78,7 +106,8 @@ export default {
         setPortPin(port, pin, callback) {
             const pinName = 'pin' + pin;
             const state = this.isPinSelected(port, pin) ? 1 : 0;
-            axios.get('http://raspberry.pi:8888/set-port-pins', {
+            axios.get('http://192.168.0.100:8888/set-port-pins', {
+                responseType: 'text',
                 params: {
                     port: port,
                     [pinName]: state

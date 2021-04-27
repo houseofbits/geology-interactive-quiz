@@ -19,11 +19,13 @@
             </div>
         </div>
 
-        <div class="overview-row">
-            <div v-for="(state, i) in pageAnswers" class="item" :class="iconClass(state, i)">
-                {{ iconText(state, i) }}
-            </div>
-        </div>
+<!--        <div class="overview-row">-->
+<!--            <div v-for="(state, i) in pageAnswers" class="item" :class="iconClass(state, i)">-->
+<!--                {{ iconText(state, i) }}-->
+<!--            </div>-->
+<!--        </div>-->
+
+        <quiz3-navigator />
 
     </div>
 </template>
@@ -34,6 +36,7 @@ import TouchPoint from "@js/Stuctures/TouchPoint";
 import ObjectDetectionService from '@js/Services/ObjectDetectionService';
 import DetectionFeature from "@js/Stuctures/DetectionFeature";
 import QuizPage from "@js/gui/QuizPage.vue";
+import Quiz3Navigator from '@js/gui/components/Quiz3Navigator.vue';
 import TextLV from "@json/quiz3-text-lv.json";
 
 const detectionService = new ObjectDetectionService();
@@ -58,7 +61,8 @@ const AnswerState = {
 export default {
     name: "Quiz3View",
     components:{
-        QuizPage
+        QuizPage,
+        Quiz3Navigator
     },
     data() {
         return {
