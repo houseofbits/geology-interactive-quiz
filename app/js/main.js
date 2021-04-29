@@ -9,6 +9,7 @@ import Quiz2View from './gui/Quiz2View.vue';
 import Quiz3View from './gui/Quiz3View.vue';
 import IOView from './gui/IOView.vue';
 import MainSceneInstance from './scene/MainInstance';
+import fontawesome from '@fortawesome/fontawesome-free/css/all.css';
 
 Vue.use(VueRouter);
 

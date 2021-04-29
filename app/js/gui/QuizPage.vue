@@ -1,13 +1,9 @@
 <template>
-    <div class="screen" :class="{visible: selected, green: isFinishedCorrect, red: isFinishedIncorrect}">
-        <span class="title">{{ title }}</span>
-
-        <span class="hint1" v-if="isHint1Visible">{{ hint1 }}</span>
-
-        <span class="hint2" v-if="isHint2Visible">{{ hint2 }}</span>
-
+    <div class="frame" :class="{visible: selected}">
+        <span class="title" :class="{inactive: isHint1Visible}">{{ title }}</span>
+        <div class="hint1" :class="{active: isHint1Visible, inactive: isHint2Visible}">{{ hint1 }}</div>
+        <div class="hint2" :class="{active: isHint2Visible}">{{ hint2 }}</div>
         <div class="active-area"></div>
-
     </div>
 </template>
 
@@ -63,68 +59,96 @@ export default {
 
 <style lang="scss" scoped>
 
-.screen {
+.frame {
     position: absolute;
     left: 0;
     top: 0;
     width: 1024px;
     height: 768px;
     visibility: hidden;
-    //background: linear-gradient(to bottom, rgba(30,87,153,1) 0%,rgba(125,185,232,0) 100%);
-    background-color: white;
-
-    &.green {
-        background-color: green;
-    }
-    &.red {
-        background-color: darkred;
-    }
 
     &.visible {
         visibility: visible;
     }
 
     .title {
+        position: absolute;
         display: inline-block;
         width: 100%;
-        color: white;
         text-align: center;
         font-size: 32px;
         line-height: 32px;
         padding-left: 40px;
         padding-right: 40px;
-        margin-top: 30px;
+        top: 100px;
+        color: #414141;
+        text-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        transition: all linear 50ms;
+
+        &.inactive {
+            opacity: 0.4;
+            text-shadow: 0 6px 35px rgba(0,0,0,0.8);
+            transition: all linear 500ms;
+        }
     }
 
     .hint1 {
+        position: absolute;
         display: inline-block;
         width: 100%;
-        color: white;
         text-align: center;
-        font-size: 26px;
+        font-size: 28px;
         line-height: 26px;
-        margin-top: 30px;
+        top: 190px;
         padding-left: 40px;
         padding-right: 40px;
+        color: #414141;
+        text-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        transform: scale(0.2);
+        opacity: 0.0;
+        transition: all linear 50ms;
+
+        &.active {
+            opacity: 1.0;
+            transform: scale(1.0);
+            transition: all linear 350ms;
+        }
+
+        &.inactive {
+            opacity: 0.4;
+            text-shadow: 0 6px 35px rgba(0,0,0,0.8);
+            transition: all linear 350ms;
+        }
     }
 
     .hint2 {
+        position: absolute;
         display: inline-block;
         width: 100%;
-        color: white;
         text-align: center;
         font-size: 26px;
         line-height: 26px;
-        margin-top: 30px;
+        top: 280px;
         padding-left: 40px;
         padding-right: 40px;
+        color: #414141;
+        text-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        transform: scale(0.2);
+        opacity: 0.0;
+        transition: all linear 50ms;
+
+        &.active {
+            opacity: 1.0;
+            transform: scale(1.0);
+            transition: all linear 350ms;
+        }
     }
 
     .active-area {
         position: absolute;
         left: 100px;
-        top:300px;
-        bottom: 200px;
+        top:400px;
+        bottom: 150px;
         right:100px;
         border-radius: 60px;
         color:white;
@@ -138,28 +162,6 @@ export default {
                 rgba(255, 145, 0, 0) 20px,
                 rgba(255, 153, 62, 0) 40px
         );
-        //
-        //&.green {
-        //    background: repeating-linear-gradient(
-        //            45deg,
-        //            rgba(137, 255, 0, 0.6) 0,
-        //            rgba(112, 255, 0, 0.66) 20px,
-        //            rgba(0, 0, 255, 0) 20px,
-        //            rgba(63, 187, 62, 0) 40px
-        //    );
-        //    border: solid 10px rgba(112, 255, 0, 0.66);
-        //}
-        //
-        //&.red {
-        //    background: repeating-linear-gradient(
-        //            45deg,
-        //            rgba(255, 96, 0, 0.6) 0,
-        //            rgba(255, 96, 0, 0.66) 20px,
-        //            rgba(255, 96, 0, 0) 20px,
-        //            rgba(255, 96, 0, 0) 40px
-        //    );
-        //    border: solid 10px rgba(255, 96, 0, 0.6);
-        //}
     }
 }
 

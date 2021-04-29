@@ -1,5 +1,18 @@
 <template>
-    <div class="screen">
+    <div class="view">
+
+        <div class="reset-button" @click="reset">
+            <i class="fas fa-sync-alt"></i>
+        </div>
+
+        <div class="container m-0 p-0 test-buttons-overlay">
+            <div class="row debug m-0 p-0 pt-2 pl-2">
+                <button class="btn btn-sm btn-success m-1" type="button" @click="selectedCorrectAnswer">Rigth answer
+                </button>
+                <button class="btn btn-sm btn-danger m-1" type="button" @click="selectedWrongAnswer">Wrong answer
+                </button>
+            </div>
+        </div>
 
         <quiz-page
             v-for="(n, index) in 8" :key="index"
@@ -13,19 +26,17 @@
             :class="pageClass(index)"
         />
 
+        <quiz3-final-page :selected="selectedQuestion===8" :page-answers="pageAnswers" :class="pageClass(8)"/>
+
         <div v-for="(object, index) in detectedObjects">
             <div :class="['color-'+object.id]" :style="objectPointTransform(object)"
                  class="object-element">{{ object.id }}
             </div>
         </div>
 
-<!--        <div class="overview-row">-->
-<!--            <div v-for="(state, i) in pageAnswers" class="item" :class="iconClass(state, i)">-->
-<!--                {{ iconText(state, i) }}-->
-<!--            </div>-->
-<!--        </div>-->
+        <quiz3-navigator :items="pageAnswers" :selected="selectedQuestion"/>
 
-        <quiz3-navigator />
+        <div class="main-title" :class="{visible:!isFinalViewVisible}">Pievieno pareizo nosaukumu</div>
 
     </div>
 </template>
@@ -38,6 +49,7 @@ import DetectionFeature from "@js/Stuctures/DetectionFeature";
 import QuizPage from "@js/gui/QuizPage.vue";
 import Quiz3Navigator from '@js/gui/components/Quiz3Navigator.vue';
 import TextLV from "@json/quiz3-text-lv.json";
+import Quiz3FinalPage from "@js/gui/components/Quiz3FinalPage.vue";
 
 const detectionService = new ObjectDetectionService();
 
@@ -54,13 +66,15 @@ const ActiveFeatures = [
 
 const AnswerState = {
     UNKNOWN: 0,
-    INCORRECT: 1,
-    CORRECT: 2
+    CURRENT: 1,
+    INCORRECT: 2,
+    CORRECT: 3
 };
 
 export default {
     name: "Quiz3View",
-    components:{
+    components: {
+        Quiz3FinalPage,
         QuizPage,
         Quiz3Navigator
     },
@@ -87,30 +101,28 @@ export default {
                 AnswerState.UNKNOWN,
                 AnswerState.UNKNOWN,
                 AnswerState.UNKNOWN
-            ]
+            ],
+            isFinalViewVisible: false,
+            resetTimeout: null
         };
     },
-    watch:{
+    watch: {
         answerId(id) {
             if (id === null) {
                 return;
             }
             const featureId = ActiveFeatures[this.selectedQuestion].id;
             if (id === featureId) {
-                this.isCorrectAnswer = true;
-                this.continueNextDelayed();
+                this.selectedCorrectAnswer();
             } else {
                 if (!this.wrongAnswers.includes(id)) {
-                    this.numberOfIncorrectAnswers++;
-                    if (this.numberOfIncorrectAnswers > 2) {
-                        this.continueNextDelayed();
-                    }
+                    this.selectedWrongAnswer();
                     this.wrongAnswers.push(id);
                 }
             }
         }
     },
-    computed:{
+    computed: {
         isAnswerCorrect() {
             const featureId = ActiveFeatures[this.selectedQuestion].id;
             return this.answerId === featureId;
@@ -127,6 +139,16 @@ export default {
         }
     },
     methods: {
+        selectedCorrectAnswer() {
+            this.isCorrectAnswer = true;
+            this.continueNextDelayed();
+        },
+        selectedWrongAnswer() {
+            this.numberOfIncorrectAnswers++;
+            if (this.numberOfIncorrectAnswers > 2) {
+                this.continueNextDelayed();
+            }
+        },
         iconClass(state, index) {
             const classes = [];
             if (this.selectedQuestion === index) {
@@ -176,6 +198,7 @@ export default {
             }, 16);
         },
         checkForAnswer() {
+
             let answerId = null;
 
             if (this.detectedObjects.length > 0) {
@@ -190,6 +213,10 @@ export default {
             }
             this.answerId = answerId;
         },
+        reset() {
+            this.selectedQuestion = 0;
+            this.initPage();
+        },
         initPage() {
             this.isCorrectAnswer = false;
             this.numberOfIncorrectAnswers = 0;
@@ -198,6 +225,7 @@ export default {
             this.detectedObjects = [];
             this.touches = [];
             if (this.selectedQuestion === 0) {
+                this.isFinalViewVisible = false;
                 this.pageAnswers = [
                     AnswerState.UNKNOWN,
                     AnswerState.UNKNOWN,
@@ -209,21 +237,35 @@ export default {
                     AnswerState.UNKNOWN
                 ];
             }
+            this.setQuestionState(AnswerState.CURRENT);
             this.isDisabled = false;
         },
         continueNextDelayed() {
             this.isDisabled = true;
             this.isPageFinished = true;
             if (this.isCorrectAnswer) {
-                this.pageAnswers[this.selectedQuestion] = AnswerState.CORRECT;
+                this.setQuestionState(AnswerState.CORRECT);
             } else {
-                this.pageAnswers[this.selectedQuestion] = AnswerState.INCORRECT;
+                this.setQuestionState(AnswerState.INCORRECT);
             }
             setTimeout(this.continueNext, 1000);
         },
         continueNext() {
+            this.updateResetTimer();
+            if (this.selectedQuestion + 1 === 8) {
+                this.isFinalViewVisible = true;
+                this.selectedQuestion = 8;
+                return;
+            }
             this.selectedQuestion = (this.selectedQuestion + 1) % 8;
             this.initPage();
+        },
+        setQuestionState(state) {
+            this.$set(this.pageAnswers, this.selectedQuestion, state);
+        },
+        updateResetTimer() {
+            clearTimeout(this.resetTimeout);
+            this.resetTimeout = setTimeout(this.reset, 60000);
         }
     },
     mounted() {
@@ -240,6 +282,7 @@ export default {
             for (const touch of event.touches) {
                 this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
             }
+            this.updateResetTimer();
         }.bind(this), false);
 
         //To disable context menu
@@ -259,40 +302,77 @@ export default {
 
 <style lang="scss" scoped>
 
-.screen {
+.view {
     position: absolute;
     width: 1024px;
     height: 768px;
+    overflow: hidden;
+    background: linear-gradient(to bottom, rgba(255, 255, 160, 1) 0%, rgba(255, 255, 255, 1) 72%);
+
+    .test-buttons-overlay {
+        position: absolute;
+        z-index: 100;
+    }
+
+    .main-title {
+        display: inline-block;
+        color: gray;
+        position: absolute;
+        width: 1024px;
+        left: 0;
+        height: 80px;
+        text-align: center;
+        font-size: 50px;
+        line-height: 80px;
+        text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        background: linear-gradient(to bottom, rgba(255, 183, 107, 1) 0%, rgba(255, 167, 61, 1) 55%, rgba(255, 124, 0, 1) 87%, rgba(255, 127, 4, 1) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        opacity: 0.0;
+        transform: scale(0.2);
+        transition: all linear 500ms;
+
+        &.visible {
+            opacity: 1.0;
+            transform: scale(1.0);
+        }
+    }
+
+    .reset-button {
+        position: absolute;
+        right: 10px;
+        top: 20px;
+        width: 60px;
+        height: 60px;
+        z-index: 50;
+
+        i {
+            font-size: 50px;
+            color: gray;
+        }
+    }
 
     .page-out {
-        left:-1024px;
+        left: -1024px;
         transition: all linear 500ms;
     }
+
     .page-active {
         left: 0;
         transition: all linear 500ms;
     }
+
     .page-in {
-        left:1024px;
+        left: 1024px;
         transition: all linear 500ms;
     }
 
-    .title {
-        display: inline-block;
-        width: 100%;
-        color: white;
-        text-align: center;
-        font-size: 30px;
-        line-height: 80px;
-        //border: solid 1px red;
-    }
-
     .overview-row {
-        position:absolute;
+        position: absolute;
         width: 1024px;
         height: 150px;
-        left:0;
-        bottom:0;
+        left: 0;
+        bottom: 0;
         text-align: center;
 
         .item {
@@ -300,7 +380,7 @@ export default {
             line-height: 100px;
             text-align: center;
             vertical-align: middle;
-            height:100px;
+            height: 100px;
             width: 100px;
             background-color: gray;
             margin-top: 10px;
@@ -314,9 +394,11 @@ export default {
             &.selected {
                 border: solid 3px yellow;
             }
+
             &.correct {
                 background-color: green;
             }
+
             &.incorrect {
                 background-color: red;
             }
