@@ -15,20 +15,19 @@
                     </div>
 
                     <div class="col-sm text-center">
-                        <h3 class="text-light mt-3">Lower row</h3>
-                        <button v-for="(pin, index) in lowerRowPins" :class="{'btn-warning': !isPinSelected(0, pin),
-                                    'bg-success': isPinSelected(0, pin)}"
-                                class="btn text-light btn-lg mt-3 btn-block"
-                                @click="togglePin(0, pin)">#{{ index + 1 }}</button>
+                        <h3 class="text-light mt-3">Columns</h3>
+                        <button v-for="(pin, index) in 5"
+                                class="btn bg-primary text-light btn-lg mt-3 btn-block"
+                                @click="setLightState(index)">#{{ index + 1 }}</button>
                     </div>
 
-                    <div class="col-sm text-center">
-                        <h3 class="text-light mt-3">Upper row</h3>
-                        <button v-for="(pin, index) in lowerRowPins" :class="{'btn-warning': !isPinSelected(0, pin),
-                                    'bg-success': isPinSelected(0, pin)}"
-                                class="btn text-light btn-lg mt-3 btn-block"
-                                @click="togglePin(0, pin)">#{{ index + 1 }}</button>
-                    </div>
+<!--                    <div class="col-sm text-center">-->
+<!--                        <h3 class="text-light mt-3">Upper row</h3>-->
+<!--                        <button v-for="(pin, index) in lowerRowPins" :class="{'btn-warning': !isPinSelected(0, pin),-->
+<!--                                    'bg-success': isPinSelected(0, pin)}"-->
+<!--                                class="btn text-light btn-lg mt-3 btn-block"-->
+<!--                                @click="togglePin(0, pin)">#{{ index + 1 }}</button>-->
+<!--                    </div>-->
 
 <!--                    <div v-for="columnIndex in 2" :key="columnIndex" class="col-sm text-center">-->
 <!--                        <h3 class="text-light mt-3">Port 1</h3>-->
@@ -49,6 +48,15 @@
 <script>
 
 import axios from 'axios';
+
+const ColumnPins = {
+    upper: [
+        3,14,15,4,11
+    ],
+    lower: [
+        9,8,13,7,10
+    ]
+};
 
 export default {
     name: "IOView",
@@ -106,7 +114,7 @@ export default {
         setPortPin(port, pin, callback) {
             const pinName = 'pin' + pin;
             const state = this.isPinSelected(port, pin) ? 1 : 0;
-            axios.get('http://192.168.0.100:8888/set-port-pins', {
+            axios.get('http://raspberry.pi:8888/set-port-pins', {
                 responseType: 'text',
                 params: {
                     port: port,
@@ -119,6 +127,24 @@ export default {
                 .catch(function (error) {
                     alert(error);
                 });
+        },
+        setPortPinSilent(pin, state) {
+            const pinName = 'pin' + pin;
+            axios.get('http://raspberry.pi:8888/set-port-pins', {
+                responseType: 'text',
+                params: {
+                    port: 0,
+                    [pinName]: state
+                }
+            });
+        },
+        setLightState(column) {
+            for (const [i, v] of ColumnPins.lower.entries()) {
+                this.setPortPinSilent(v, i === column)
+            }
+            for (const [i, v] of ColumnPins.upper.entries()) {
+                this.setPortPinSilent(v, i === column)
+            }
         }
     }
 }

@@ -38,6 +38,15 @@ const ActiveFeatures = [
     new DetectionFeature(3, 700, 150, 900, 350)         //Deltas nogāze
 ];
 
+const ColumnPins = {
+    upper: [
+        3,14,15,4,11
+    ],
+    lower: [
+        9,8,13,7,10
+    ]
+};
+
 const AnswerState = {
     UNKNOWN: 0,
     INCORRECT: 1,
@@ -105,6 +114,24 @@ export default {
                     }
                 }
                 this.answerIndex = answerIndex;
+            }
+        },
+        setPortPin(pin, state) {
+            const pinName = 'pin' + pin;
+            axios.get('http://raspberry.pi:8888/set-port-pins', {
+                responseType: 'text',
+                params: {
+                    port: 0,
+                    [pinName]: state
+                }
+            });
+        },
+        setLightState(column) {
+            for (const [i, v] of ColumnPins.lower.entries()) {
+                this.setPortPin(v, i === column)
+            }
+            for (const [i, v] of ColumnPins.upper.entries()) {
+                this.setPortPin(v, i === column)
             }
         }
     },
