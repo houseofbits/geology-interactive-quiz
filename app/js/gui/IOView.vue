@@ -19,6 +19,9 @@
                         <button v-for="(pin, index) in 5"
                                 class="btn bg-primary text-light btn-lg mt-3 btn-block"
                                 @click="setLightState(index)">#{{ index + 1 }}</button>
+
+                        <button class="btn bg-danger text-light btn-lg mt-3 btn-block"
+                                @click="setLightState(null)">Off</button>
                     </div>
 
 <!--                    <div class="col-sm text-center">-->
@@ -138,13 +141,23 @@ export default {
                 }
             });
         },
+        setPortPinWithParams(params) {
+            axios.get('http://raspberry.pi:8888/set-port-pins', {
+                responseType: 'text',
+                params: params
+            });
+        },
         setLightState(column) {
+            let params = {
+                port: 0
+            };
             for (const [i, v] of ColumnPins.lower.entries()) {
-                this.setPortPinSilent(v, i === column)
+                params['pin' + v] = i === column;
             }
             for (const [i, v] of ColumnPins.upper.entries()) {
-                this.setPortPinSilent(v, i === column)
+                params['pin' + v] = i === column;
             }
+            this.setPortPinWithParams(params);
         }
     }
 }

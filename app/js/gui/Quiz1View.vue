@@ -1,28 +1,38 @@
 <template>
     <div class="screen">
-        <span class="title">Izvēlies pareizo iezi</span>
+        <div class="background"></div>
+        <span class="main-title">Izvēlies pareizo iezi</span>
+
+        <div class="reset-button">
+            <i class="fas fa-sync-alt"></i>
+        </div>
 
         <div class="column1">
-            <div :class="{green: isAnswerACorrect, red: isAnswerAIncorrect}" class="question-block">Iezis veidojies
+            <div class="question-block">Iezis veidojies
                 dēdēšanas procesā kalnu masīvu nogāzēs un kalnu upēs. Iežu
                 atlūzas ir noapaļotas.
             </div>
-            <div :class="{green: isAnswerACorrect, red: isAnswerAIncorrect}" class="active-area"></div>
         </div>
+
+        <div :class="{green: isAnswerACorrect, red: isAnswerAIncorrect}" class="active-area first"></div>
+
         <div class="column2">
             <div :class="{green: isAnswerBCorrect, red: isAnswerBIncorrect}" class="question-block">Iezis ir veidojies
                 ilgstoša ūdens transporta rezultātā. Ieža graudi ir
                 noapaļoti, un tā sastāvā dominē minerāls kvarcs.
             </div>
-            <div :class="{green: isAnswerBCorrect, red: isAnswerBIncorrect}" class="active-area"></div>
         </div>
+
+        <div :class="{green: isAnswerBCorrect, red: isAnswerBIncorrect}" class="active-area second"></div>
+
         <div class="column3">
             <div :class="{green: isAnswerCCorrect, red: isAnswerCIncorrect}" class="question-block">Iezis veidojies,
                 uzkrājoties ļoti sīkām iežu daļiņām ūdens tilpnēs mierīgos
                 apstākļos. To galvenā sastāvdaļa ir īpaša minerālu grupa – mālu minerāli.
             </div>
-            <div :class="{green: isAnswerCCorrect, red: isAnswerCIncorrect}" class="active-area"></div>
         </div>
+
+        <div :class="{green: isAnswerCCorrect, red: isAnswerCIncorrect}" class="active-area third"></div>
 
         <div v-for="(object, index) in detectedObjects">
             <div :class="['color-'+object.id]" :style="objectPointTransform(object)"
@@ -45,9 +55,9 @@ const CorrectAnswerBId = 7;
 const CorrectAnswerCId = 3;
 
 const ActiveFeatures = [
-    new DetectionFeature(CorrectAnswerAId, 55, 300, 300, 720),
-    new DetectionFeature(CorrectAnswerBId, 390, 300, 630, 720),
-    new DetectionFeature(CorrectAnswerCId, 730, 300, 970, 720)
+    new DetectionFeature(CorrectAnswerAId, 680, 90, 1000, 300),
+    new DetectionFeature(CorrectAnswerBId, 15, 300, 330, 510),
+    new DetectionFeature(CorrectAnswerCId, 680, 500, 1000, 720)
 ];
 
 const AnswerState = {
@@ -157,61 +167,113 @@ export default {
 <style lang="scss" scoped>
 
 .screen {
+    top: 0;
+    left: 0;
     position: absolute;
     width: 1024px;
     height: 768px;
+    background: linear-gradient(to bottom, rgba(255, 255, 160, 1) 0%, rgba(255, 255, 255, 1) 72%);
 
-    .title {
+    .background {
+        top: 0;
+        left: 0;
+        position: absolute;
+        width: 1024px;
+        height: 768px;
+        background-image: url('@images/q1-bg1.png');
+    }
+
+    .main-title {
         display: inline-block;
-        width: 100%;
-        color: white;
+        color: gray;
+        position: absolute;
+        width: 1024px;
+        left: 0;
+        height: 80px;
         text-align: center;
-        font-size: 30px;
+        font-size: 50px;
         line-height: 80px;
-        //border: solid 1px red;
+        text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        background: linear-gradient(to bottom, rgba(255, 183, 107, 1) 0%, rgba(255, 167, 61, 1) 55%, rgba(255, 124, 0, 1) 87%, rgba(255, 127, 4, 1) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
     }
 
     .column1 {
         position: absolute;
-        top: 0;
+        top: 140px;
         left: 0;
-        width: 33.3%;
-        height: 100%;
-        // border: solid 1px yellow;
+        width: 650px;
+        height: 120px;
+        background-color: rgba(255,255,255,0.5);
+        padding-left: 20px;
     }
 
     .column2 {
         position: absolute;
-        top: 0;
-        left: 33.3%;
-        width: 33.3%;
-        height: 100%;
-        //border: solid 1px yellow;
+        top: 360px;
+        right: 0;
+        width: 650px;
+        height: 120px;
+        background-color: rgba(255,255,255,0.5);
+        padding-right: 20px;
     }
 
     .column3 {
         position: absolute;
-        top: 0;
-        left: 66.6%;
-        width: 33.3%;
-        height: 100%;
-        //border: solid 1px yellow;
+        top: 580px;
+        left: 0;
+        width: 650px;
+        height: 120px;
+        background-color: rgba(255,255,255,0.5);
+        padding-left: 20px;
+    }
+
+    .reset-button {
+        position: absolute;
+        right: 10px;
+        top: 20px;
+        width: 60px;
+        height: 60px;
+        z-index: 50;
+
+        i {
+            font-size: 50px;
+            color: gray;
+        }
     }
 
     .active-area {
         position: absolute;
-        top: 300px;
-        left: 50px;
-        right: 50px;
-        bottom: 50px;
-        border-radius: 80px;
+        border-radius: 60px;
         background: repeating-linear-gradient(
                 45deg,
                 rgba(247, 160, 22, 0.51) 0,
-                rgba(255, 169, 0, 0.77) 30px,
-                rgba(255, 145, 0, 0) 30px,
-                rgba(255, 153, 62, 0) 60px
+                rgba(255, 169, 0, 0.77) 20px,
+                rgba(255, 145, 0, 0) 20px,
+                rgba(255, 153, 62, 0) 40px
         );
+
+        &.first {
+            top: 100px;
+            right: 30px;
+            width: 300px;
+            height: 200px;
+        }
+
+        &.second {
+            top: 310px;
+            left: 30px;
+            width: 300px;
+            height: 200px;
+        }
+
+        &.third {
+            top: 520px;
+            right: 30px;
+            width: 300px;
+            height: 200px;
+        }
 
         &.green {
             background: repeating-linear-gradient(
@@ -237,14 +299,16 @@ export default {
     }
 
     .question-block {
-        position: absolute;
-        top: 100px;
-        left: 20px;
-        right: 20px;
-        height: auto;
-        color: white;
-        font-size: 21px;
-        text-shadow: 1px 2px 2px black;
+        margin: 10px;
+        //position: absolute;
+        //top: 100px;
+        //left: 20px;
+        //right: 20px;
+        //height: auto;
+        color: #414141;
+        font-size: 28px;
+        line-height: 28px;
+        text-shadow: 0 6px 20px rgba(0,0,0,0.4);
 
         &.green {
             color: greenyellow;

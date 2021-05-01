@@ -80,15 +80,17 @@ export default {
         line-height: 32px;
         padding-left: 40px;
         padding-right: 40px;
-        top: 100px;
+
         color: #414141;
         text-shadow: 0 6px 20px rgba(0,0,0,0.4);
         transition: all linear 50ms;
+        top: 190px;
 
         &.inactive {
             opacity: 0.4;
             text-shadow: 0 6px 35px rgba(0,0,0,0.8);
             transition: all linear 500ms;
+            top: 100px;
         }
     }
 
@@ -99,7 +101,7 @@ export default {
         text-align: center;
         font-size: 28px;
         line-height: 26px;
-        top: 190px;
+
         padding-left: 40px;
         padding-right: 40px;
         color: #414141;
@@ -107,6 +109,7 @@ export default {
         transform: scale(0.2);
         opacity: 0.0;
         transition: all linear 50ms;
+        top: 280px;
 
         &.active {
             opacity: 1.0;
@@ -118,6 +121,7 @@ export default {
             opacity: 0.4;
             text-shadow: 0 6px 35px rgba(0,0,0,0.8);
             transition: all linear 350ms;
+            top: 190px;
         }
     }
 
