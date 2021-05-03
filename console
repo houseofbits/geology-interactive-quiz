@@ -1,0 +1,54 @@
+#!/bin/bash
+
+function rreboot() {
+
+    echo "Reboot 10.10.30.211"
+    ssh lvdm@10.10.30.211 "sudo reboot"
+
+    echo "Reboot 10.10.30.212"
+    ssh lvdm@10.10.30.212 "sudo reboot"
+
+    echo "Reboot 10.10.30.213"
+    ssh lvdm@10.10.30.213 "sudo reboot"        
+}
+
+function rshutdown() {
+
+    echo "Reboot 10.10.30.211"
+    ssh lvdm@10.10.30.211 "sudo shutdown"
+
+    echo "Reboot 10.10.30.212"
+    ssh lvdm@10.10.30.212 "sudo shutdown"
+
+    echo "Reboot 10.10.30.213"
+    ssh lvdm@10.10.30.213 "sudo shutdown"        
+}
+
+function deploy(){
+
+    if ping -c1 10.10.30.211 &> /dev/null
+    then
+        sudo rsync -r -h --progress dist/* lvdm@10.10.30.211:/var/www/application/geology-interactive-quiz/dist/
+    else
+        echo "10.10.30.211 not found"
+    fi
+
+    if ping -c1 10.10.30.212 &> /dev/null
+    then
+        sudo rsync -r -h --progress dist/* lvdm@10.10.30.212:/var/www/application/geology-interactive-quiz/dist/
+    else
+        echo "10.10.30.212 not found"
+    fi
+
+    if ping -c1 10.10.30.213 &> /dev/null
+    then
+        sudo rsync -r -h --progress dist/* lvdm@10.10.30.213:/var/www/application/geology-interactive-quiz/dist/
+    else
+        echo "10.10.30.213 not found"
+    fi
+
+}  
+
+$1 $2 $3 $4 $5
+
+
