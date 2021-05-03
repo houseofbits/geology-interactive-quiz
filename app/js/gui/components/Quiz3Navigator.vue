@@ -122,7 +122,7 @@ export default {
 
 @for $i from 0 through 7 {
     [data-index="#{$i}"] {
-        left: 130px + $i * 100px;
+        left: 132px + $i * 100px;
     }
 }
 

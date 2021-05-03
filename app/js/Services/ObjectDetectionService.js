@@ -12,7 +12,7 @@ export const FITTEST_OVERLAPPING_WEIGHT_FACTOR = 1.0;   //Factors to define fitt
 export const FITTEST_OVERLAPPING_DISTANCE_FACTOR = 1.0; //totalWeight = weightFactor * weight + distanceFactor * distanceWeight
 export const OBJECT_TIME_TO_LIVE = 500;    //Maximum age of object, without any touches
 export const REDUCE_DANGLING_TTL = 0.1;
-export const DEFAULT_ERROR = 5.0;
+export const DEFAULT_ERROR = 5.0;   //5.0;
 
 const ObjectDefinitionParams = [
     {id: 1, a:63.8, b:53.8, c:97.4, err:DEFAULT_ERROR},

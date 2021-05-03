@@ -152,10 +152,10 @@ export default {
                 port: 0
             };
             for (const [i, v] of ColumnPins.lower.entries()) {
-                params['pin' + v] = i === column;
+                params['pin' + v] = (i === column) ? 1 : 0;
             }
             for (const [i, v] of ColumnPins.upper.entries()) {
-                params['pin' + v] = i === column;
+                params['pin' + v] = (i === column) ? 1 : 0;
             }
             this.setPortPinWithParams(params);
         }

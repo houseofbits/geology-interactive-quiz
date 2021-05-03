@@ -18,11 +18,26 @@
                  class="object-element">{{ object.id }}
             </div>
         </div>
+
+        <quiz2-slide :index="0" :is-open="false" @click="testClick"/>
+        <quiz2-slide :index="1" :is-open="false" @click="testClick"/>
+        <quiz2-slide :index="2" :is-open="false" @click="testClick"/>
+        <quiz2-slide :index="3" :is-open="false" @click="testClick"/>
+        <quiz2-slide :index="4" :is-open="false" @click="testClick"/>
+
+        <element-tag v-for="(a, index) in 5" class="tag" :data-index="index" :class="{visible: !isOpen}"/>
+        <div v-for="(a, index) in 5" class="point" :data-index="index" :class="{visible: !isOpen}">
+            <div class="line"></div>
+        </div>
+
+        <div class="main-title" :class="{visible: !isOpen}">Atpazīsti vietas</div>
     </div>
 </template>
 
 <script>
 
+import Quiz2Slide from "./components/Quiz2Slide.vue";
+import ElementTag from "./components/ElementTag.vue";
 import TouchPoint from "@js/Stuctures/TouchPoint";
 import ObjectDetectionService from '@js/Services/ObjectDetectionService';
 import DetectionFeature from "@js/Stuctures/DetectionFeature";
@@ -55,6 +70,10 @@ const AnswerState = {
 
 export default {
     name: "Quiz2View",
+    components: {
+        Quiz2Slide,
+        ElementTag
+    },
     data() {
         return {
             isDisabled: false,
@@ -65,6 +84,8 @@ export default {
             time: 0,
             selectedAnswer: null,
             answerIndex: null,
+
+            isOpen:false
         };
     },
     watch: {
@@ -82,6 +103,10 @@ export default {
         },
     },
     methods: {
+        testClick(state) {
+            this.isOpen = state;
+        },
+
         isAnswerCorrect(i) {
             return this.selectedAnswer === i;
         },
@@ -116,23 +141,23 @@ export default {
                 this.answerIndex = answerIndex;
             }
         },
-        setPortPin(pin, state) {
-            const pinName = 'pin' + pin;
+        requestPortPinsWithParams(params) {
             axios.get('http://raspberry.pi:8888/set-port-pins', {
                 responseType: 'text',
-                params: {
-                    port: 0,
-                    [pinName]: state
-                }
+                params: params
             });
         },
-        setLightState(column) {
+        requestLightState(column) {
+            let params = {
+                port: 0
+            };
             for (const [i, v] of ColumnPins.lower.entries()) {
-                this.setPortPin(v, i === column)
+                params['pin' + v] = (i === column) ? 1 : 0;
             }
             for (const [i, v] of ColumnPins.upper.entries()) {
-                this.setPortPin(v, i === column)
+                params['pin' + v] = (i === column) ? 1 : 0;
             }
+            this.requestPortPinsWithParams(params);
         }
     },
     mounted() {
@@ -170,15 +195,29 @@ export default {
     position: absolute;
     width: 1024px;
     height: 768px;
+    background: linear-gradient(to bottom, rgba(255, 255, 160, 1) 0%, rgba(255, 255, 255, 1) 72%);
 
-    .title {
+    .main-title {
         display: inline-block;
-        width: 100%;
-        color: white;
+        color: gray;
+        position: absolute;
+        width: 1024px;
+        left: 0;
+        height: 80px;
         text-align: center;
-        font-size: 30px;
+        font-size: 50px;
         line-height: 80px;
-        //border: solid 1px red;
+        text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        background: linear-gradient(to bottom, rgba(255, 183, 107, 1) 0%, rgba(255, 167, 61, 1) 55%, rgba(255, 124, 0, 1) 87%, rgba(255, 127, 4, 1) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        opacity: 0.0;
+        transition: all linear 500ms;
+        z-index: 5;
+
+        &.visible {
+            opacity: 1.0;
+        }
     }
 
     .details {
@@ -312,6 +351,102 @@ export default {
 
     &.color-8 {
         background-color: rgba(255, 0, 0, 0.5);
+    }
+}
+
+.tag {
+    position: absolute;
+    z-index: 5;
+    opacity: 0;
+    transition: all linear 500ms;
+
+    &.visible {
+        opacity: 1;
+    }
+
+    &[data-index="0"] {
+        top: 120px;
+        left: 27.4px;
+    }
+    &[data-index="1"] {
+        top: 210px;
+        left: 232.2px;
+    }
+    &[data-index="2"] {
+        top: 120px;
+        left: 437px;
+    }
+    &[data-index="3"] {
+        top: 210px;
+        left: 641.8px;
+    }
+    &[data-index="4"] {
+        top: 120px;
+        left: 846.6px;
+    }
+}
+.point {
+    position: absolute;
+    background-color: white;
+    width: 40px;
+    height: 40px;
+    z-index: 5;
+    border-radius: 50%;
+    opacity: 0;
+    transition: all linear 500ms;
+
+    &.visible {
+        opacity: 0.7;
+    }
+
+    .line {
+        position: absolute;
+        width: 3px;
+        height: 200px;
+        background-color: white;
+        bottom:40px;
+        left:18px;
+    }
+
+    &[data-index="0"] {
+        left: 82.4px;
+        bottom: 80px;
+
+        .line {
+            height: 380px;
+        }
+    }
+    &[data-index="1"] {
+        left: 287.2px;
+        bottom: 80px;
+
+        .line {
+            height: 290px;
+        }
+    }
+    &[data-index="2"] {
+        left: 492px;
+        bottom: 80px;
+
+        .line {
+            height: 380px;
+        }
+    }
+    &[data-index="3"] {
+        left: 696.8px;
+        bottom: 80px;
+
+        .line {
+            height: 290px;
+        }
+    }
+    &[data-index="4"] {
+        left: 901.6px;
+        bottom: 80px;
+
+        .line {
+            height: 380px;
+        }
     }
 }
 </style>

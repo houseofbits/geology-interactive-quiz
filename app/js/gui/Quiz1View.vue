@@ -4,11 +4,11 @@
         <span class="main-title">Izvēlies pareizo iezi</span>
 
         <div class="reset-button">
-            <i class="fas fa-sync-alt"></i>
+            <i class="fas fa-sync-alt" @click="reset"></i>
         </div>
 
-        <div class="column1">
-            <div class="question-block">Iezis veidojies
+        <div class="column1" :class="{correct: isAnswerACorrect, wrong: isAnswerAIncorrect}">
+            <div class="question-text">Iezis veidojies
                 dēdēšanas procesā kalnu masīvu nogāzēs un kalnu upēs. Iežu
                 atlūzas ir noapaļotas.
             </div>
@@ -16,8 +16,8 @@
 
         <div :class="{green: isAnswerACorrect, red: isAnswerAIncorrect}" class="active-area first"></div>
 
-        <div class="column2">
-            <div :class="{green: isAnswerBCorrect, red: isAnswerBIncorrect}" class="question-block">Iezis ir veidojies
+        <div class="column2" :class="{correct: isAnswerBCorrect, wrong: isAnswerBIncorrect}">
+            <div class="question-text">Iezis ir veidojies
                 ilgstoša ūdens transporta rezultātā. Ieža graudi ir
                 noapaļoti, un tā sastāvā dominē minerāls kvarcs.
             </div>
@@ -25,8 +25,8 @@
 
         <div :class="{green: isAnswerBCorrect, red: isAnswerBIncorrect}" class="active-area second"></div>
 
-        <div class="column3">
-            <div :class="{green: isAnswerCCorrect, red: isAnswerCIncorrect}" class="question-block">Iezis veidojies,
+        <div class="column3" :class="{correct: isAnswerCCorrect, wrong: isAnswerCIncorrect}">
+            <div class="question-text">Iezis veidojies,
                 uzkrājoties ļoti sīkām iežu daļiņām ūdens tilpnēs mierīgos
                 apstākļos. To galvenā sastāvdaļa ir īpaša minerālu grupa – mālu minerāli.
             </div>
@@ -52,7 +52,7 @@ const detectionService = new ObjectDetectionService();
 
 const CorrectAnswerAId = 8;
 const CorrectAnswerBId = 7;
-const CorrectAnswerCId = 3;
+const CorrectAnswerCId = 2;
 
 const ActiveFeatures = [
     new DetectionFeature(CorrectAnswerAId, 680, 90, 1000, 300),
@@ -79,7 +79,8 @@ export default {
                 AnswerState.UNKNOWN,
                 AnswerState.UNKNOWN,
                 AnswerState.UNKNOWN
-            ]
+            ],
+            resetTimeout: null
         };
     },
     computed: {
@@ -103,6 +104,16 @@ export default {
         },
     },
     methods: {
+        resetDetector() {
+            this.touches = [];
+            this.detectedObjects = [];
+        },
+        reset() {
+            this.$set(this.answerState, 0, AnswerState.UNKNOWN);
+            this.$set(this.answerState, 1, AnswerState.UNKNOWN);
+            this.$set(this.answerState, 2, AnswerState.UNKNOWN);
+            this.resetDetector();
+        },
         objectPointTransform(detectedPosition) {
             return 'transform:translate(' + detectedPosition.x + 'px,' + detectedPosition.y + 'px)';
         },
@@ -117,30 +128,37 @@ export default {
             }, 16);
         },
         checkForAnswer() {
-            this.answerState[0] = AnswerState.UNKNOWN;
-            this.answerState[1] = AnswerState.UNKNOWN;
-            this.answerState[2] = AnswerState.UNKNOWN;
-
             if (this.detectedObjects.length > 0) {
                 for (let i = 0; i < ActiveFeatures.length; i++) {
                     let featureResults = detectionService.matchDetectedWithFeature(this.detectedObjects, ActiveFeatures[i]);
                     if (featureResults.length > 0) {
                         for (const result of featureResults) {
-                            this.$set(this.answerState,
-                                i,
-                                (result.id === ActiveFeatures[i].id) ? AnswerState.CORRECT : AnswerState.INCORRECT
-                            );
+                            this.setAnswerState(i, result.id);
                         }
                     }
                 }
             }
-        }
+        },
+        setAnswerState(index, id) {
+            if(this.answerState[index] === AnswerState.UNKNOWN) {
+                this.resetDetector();
+                this.$set(this.answerState,
+                    index,
+                    (id === ActiveFeatures[index].id) ? AnswerState.CORRECT : AnswerState.INCORRECT
+                );
+            }
+        },
+        updateResetTimer() {
+            clearTimeout(this.resetTimeout);
+            this.resetTimeout = setTimeout(this.reset, 60000);
+        },
     },
     mounted() {
         document.addEventListener('touchstart', function (event) {
             for (const touch of event.touches) {
                 this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
             }
+            this.updateResetTimer();
         }.bind(this), false);
         document.addEventListener('touchend', function (event) {
         }, false);
@@ -149,6 +167,7 @@ export default {
             for (const touch of event.touches) {
                 this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
             }
+            this.updateResetTimer();
         }.bind(this), false);
 
         //To disable context menu
@@ -224,9 +243,31 @@ export default {
         top: 580px;
         left: 0;
         width: 650px;
-        height: 120px;
+        height: 135px;
         background-color: rgba(255,255,255,0.5);
         padding-left: 20px;
+    }
+
+    .correct {
+        background: linear-gradient(to bottom, rgba(57,130,53,0.68) 0%,rgba(158,221,0,0.56) 100%);
+        transform: scale(1.05);
+        transition: all linear 500ms;
+
+        .question-text {
+            color: white;
+            text-shadow: 0 6px 20px rgba(0,0,0,0.7);
+        }
+    }
+
+    .wrong {
+        background: linear-gradient(to bottom, rgba(211,4,4,0.64) 0%,rgba(255,48,25,0.65) 100%);
+        transform: scale(1.05);
+        transition: all linear 500ms;
+
+        .question-text {
+            color: white;
+            text-shadow: 0 6px 20px rgba(0,0,0,0.7);
+        }
     }
 
     .reset-button {
@@ -298,25 +339,12 @@ export default {
         }
     }
 
-    .question-block {
+    .question-text {
         margin: 10px;
-        //position: absolute;
-        //top: 100px;
-        //left: 20px;
-        //right: 20px;
-        //height: auto;
         color: #414141;
         font-size: 28px;
         line-height: 28px;
         text-shadow: 0 6px 20px rgba(0,0,0,0.4);
-
-        &.green {
-            color: greenyellow;
-        }
-
-        &.red {
-            color: red;
-        }
     }
 
 }

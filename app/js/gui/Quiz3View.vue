@@ -34,6 +34,8 @@
             </div>
         </div>
 
+        <element-tag v-for="(a, index) in 8" class="tag" :data-index="index" :class="{visible: selectedQuestion===index}"/>
+
         <quiz3-navigator :items="pageAnswers" :selected="selectedQuestion"/>
 
         <div class="main-title" :class="{visible:!isFinalViewVisible}">Pievieno pareizo nosaukumu</div>
@@ -43,6 +45,7 @@
 
 <script>
 
+import ElementTag from "./components/ElementTag.vue";
 import TouchPoint from "@js/Stuctures/TouchPoint";
 import ObjectDetectionService from '@js/Services/ObjectDetectionService';
 import DetectionFeature from "@js/Stuctures/DetectionFeature";
@@ -76,7 +79,8 @@ export default {
     components: {
         Quiz3FinalPage,
         QuizPage,
-        Quiz3Navigator
+        Quiz3Navigator,
+        ElementTag
     },
     data() {
         return {
@@ -140,10 +144,12 @@ export default {
     },
     methods: {
         selectedCorrectAnswer() {
+            this.resetDetector();
             this.isCorrectAnswer = true;
             this.continueNextDelayed();
         },
         selectedWrongAnswer() {
+            this.resetDetector();
             this.numberOfIncorrectAnswers++;
             if (this.numberOfIncorrectAnswers > 2) {
                 this.continueNextDelayed();
@@ -213,6 +219,10 @@ export default {
             }
             this.answerId = answerId;
         },
+        resetDetector() {
+            this.touches = [];
+            this.detectedObjects = [];
+        },
         reset() {
             this.selectedQuestion = 0;
             this.initPage();
@@ -239,6 +249,7 @@ export default {
             }
             this.setQuestionState(AnswerState.CURRENT);
             this.isDisabled = false;
+            this.resetDetector();
         },
         continueNextDelayed() {
             this.isDisabled = true;
@@ -274,6 +285,7 @@ export default {
             for (const touch of event.touches) {
                 this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
             }
+            this.updateResetTimer();
         }.bind(this), false);
         document.addEventListener('touchend', function (event) {
         }, false);
@@ -453,4 +465,22 @@ export default {
         background-color: rgba(255, 0, 0, 0.5);
     }
 }
+
+.tag {
+    position: absolute;
+    opacity: 0;
+    transition: all linear 500ms;
+
+    &.visible {
+        opacity: 1;
+    }
+
+    @for $i from 0 through 7 {
+        &[data-index="#{$i}"] {
+            bottom: 180px;
+            left: 87px + $i * 100px;
+        }
+    }
+}
+
 </style>

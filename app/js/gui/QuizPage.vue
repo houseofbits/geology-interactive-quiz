@@ -3,7 +3,7 @@
         <span class="title" :class="{inactive: isHint1Visible}">{{ title }}</span>
         <div class="hint1" :class="{active: isHint1Visible, inactive: isHint2Visible}">{{ hint1 }}</div>
         <div class="hint2" :class="{active: isHint2Visible}">{{ hint2 }}</div>
-        <div class="active-area"></div>
+<!--        <div class="active-area"></div>-->
     </div>
 </template>
 
