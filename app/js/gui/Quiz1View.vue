@@ -7,14 +7,16 @@
             <i class="fas fa-sync-alt" @click="reset"></i>
         </div>
 
+        <element-tag class="tag tag-1"/>
+        <element-tag class="tag tag-2"/>
+        <element-tag class="tag tag-3"/>
+
         <div class="column1" :class="{correct: isAnswerACorrect, wrong: isAnswerAIncorrect}">
             <div class="question-text">Iezis veidojies
                 dēdēšanas procesā kalnu masīvu nogāzēs un kalnu upēs. Iežu
                 atlūzas ir noapaļotas.
             </div>
         </div>
-
-        <div :class="{green: isAnswerACorrect, red: isAnswerAIncorrect}" class="active-area first"></div>
 
         <div class="column2" :class="{correct: isAnswerBCorrect, wrong: isAnswerBIncorrect}">
             <div class="question-text">Iezis ir veidojies
@@ -23,8 +25,6 @@
             </div>
         </div>
 
-        <div :class="{green: isAnswerBCorrect, red: isAnswerBIncorrect}" class="active-area second"></div>
-
         <div class="column3" :class="{correct: isAnswerCCorrect, wrong: isAnswerCIncorrect}">
             <div class="question-text">Iezis veidojies,
                 uzkrājoties ļoti sīkām iežu daļiņām ūdens tilpnēs mierīgos
@@ -32,33 +32,20 @@
             </div>
         </div>
 
-        <div :class="{green: isAnswerCCorrect, red: isAnswerCIncorrect}" class="active-area third"></div>
-
-        <div v-for="(object, index) in detectedObjects">
-            <div :class="['color-'+object.id]" :style="objectPointTransform(object)"
-                 class="object-element">{{ object.id }}
-            </div>
-        </div>
     </div>
 </template>
 
 <script>
 
-import TouchPoint from "@js/Stuctures/TouchPoint";
 import ObjectDetectionService from '@js/Services/ObjectDetectionService';
 import DetectionFeature from "@js/Stuctures/DetectionFeature";
-
+import ElementTag from "./components/ElementTag.vue";
+import ObjectRecognitionServiceInstance from '@js/Services/ObjectRecongnitionService.js';
 const detectionService = new ObjectDetectionService();
 
 const CorrectAnswerAId = 8;
 const CorrectAnswerBId = 7;
 const CorrectAnswerCId = 2;
-
-const ActiveFeatures = [
-    new DetectionFeature(CorrectAnswerAId, 680, 90, 1000, 300),
-    new DetectionFeature(CorrectAnswerBId, 15, 300, 330, 510),
-    new DetectionFeature(CorrectAnswerCId, 680, 500, 1000, 720)
-];
 
 const AnswerState = {
     UNKNOWN: 0,
@@ -68,13 +55,11 @@ const AnswerState = {
 
 export default {
     name: "Quiz1View",
+    components: {
+        ElementTag
+    },
     data() {
         return {
-            touches: [],
-            detectedObjects: [],
-            objectDefinitionsArray: [],
-            detectorLoopIntervalId: null,
-            time: 0,
             answerState: [
                 AnswerState.UNKNOWN,
                 AnswerState.UNKNOWN,
@@ -104,80 +89,62 @@ export default {
         },
     },
     methods: {
-        resetDetector() {
-            this.touches = [];
-            this.detectedObjects = [];
-        },
         reset() {
             this.$set(this.answerState, 0, AnswerState.UNKNOWN);
             this.$set(this.answerState, 1, AnswerState.UNKNOWN);
             this.$set(this.answerState, 2, AnswerState.UNKNOWN);
-            this.resetDetector();
-        },
-        objectPointTransform(detectedPosition) {
-            return 'transform:translate(' + detectedPosition.x + 'px,' + detectedPosition.y + 'px)';
-        },
-        detectSmart() {
-            this.detectedObjects = detectionService.detectObjects(this.time, this.touches, this.objectDefinitionsArray, this.detectedObjects);
-            this.checkForAnswer();
-        },
-        runDetectionLoop() {
-            this.detectorLoopIntervalId = setInterval(() => {
-                this.detectSmart();
-                this.time += 16;
-            }, 16);
-        },
-        checkForAnswer() {
-            if (this.detectedObjects.length > 0) {
-                for (let i = 0; i < ActiveFeatures.length; i++) {
-                    let featureResults = detectionService.matchDetectedWithFeature(this.detectedObjects, ActiveFeatures[i]);
-                    if (featureResults.length > 0) {
-                        for (const result of featureResults) {
-                            this.setAnswerState(i, result.id);
-                        }
-                    }
-                }
-            }
-        },
-        setAnswerState(index, id) {
-            if(this.answerState[index] === AnswerState.UNKNOWN) {
-                this.resetDetector();
-                this.$set(this.answerState,
-                    index,
-                    (id === ActiveFeatures[index].id) ? AnswerState.CORRECT : AnswerState.INCORRECT
-                );
-            }
+            ObjectRecognitionServiceInstance.resetDetector();
         },
         updateResetTimer() {
             clearTimeout(this.resetTimeout);
             this.resetTimeout = setTimeout(this.reset, 60000);
         },
+
+        //TODO Check for result age
+        checkAnswer(result) {
+            if (result.regionId === 1) {
+                this.$set(this.answerState,
+                    0,
+                    (result.id === CorrectAnswerAId) ? AnswerState.CORRECT : AnswerState.INCORRECT
+                );
+            }
+            if (result.regionId === 2) {
+                this.$set(this.answerState,
+                    1,
+                    (result.id === CorrectAnswerBId) ? AnswerState.CORRECT : AnswerState.INCORRECT
+                );
+            }
+            if (result.regionId === 3) {
+                this.$set(this.answerState,
+                    2,
+                    (result.id === CorrectAnswerCId) ? AnswerState.CORRECT : AnswerState.INCORRECT
+                );
+            }
+            this.updateResetTimer();
+        },
+
+        onNewObjectDetected(result) {
+            this.checkAnswer(result);
+        },
+        onObjectRemoved(result) {   },
+        onObjectUpdated(result) {   }
     },
     mounted() {
-        document.addEventListener('touchstart', function (event) {
-            for (const touch of event.touches) {
-                this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
-            }
-            this.updateResetTimer();
-        }.bind(this), false);
-        document.addEventListener('touchend', function (event) {
-        }, false);
-        document.addEventListener('touchmove', function (event) {
-            this.touches = [];
-            for (const touch of event.touches) {
-                this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
-            }
-            this.updateResetTimer();
-        }.bind(this), false);
 
         //To disable context menu
         window.addEventListener("contextmenu", function (e) {
             e.preventDefault();
         });
 
-        this.objectDefinitionsArray = detectionService.getObjectDefinitions();
+        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(1, 680, 90, 1000, 300));
+        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(2, 15, 300, 330, 510));
+        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(3, 680, 500, 1000, 720));
 
-        this.runDetectionLoop();
+        ObjectRecognitionServiceInstance.detectedHandler = this.onObjectUpdated;
+        ObjectRecognitionServiceInstance.detectedNewHandler = this.onNewObjectDetected;
+        ObjectRecognitionServiceInstance.detectedLostHandler = this.onObjectRemoved;
+
+        ObjectRecognitionServiceInstance.runDetectionLoop();
 
     }
 }
@@ -284,61 +251,6 @@ export default {
         }
     }
 
-    .active-area {
-        position: absolute;
-        border-radius: 60px;
-        background: repeating-linear-gradient(
-                45deg,
-                rgba(247, 160, 22, 0.51) 0,
-                rgba(255, 169, 0, 0.77) 20px,
-                rgba(255, 145, 0, 0) 20px,
-                rgba(255, 153, 62, 0) 40px
-        );
-
-        &.first {
-            top: 100px;
-            right: 30px;
-            width: 300px;
-            height: 200px;
-        }
-
-        &.second {
-            top: 310px;
-            left: 30px;
-            width: 300px;
-            height: 200px;
-        }
-
-        &.third {
-            top: 520px;
-            right: 30px;
-            width: 300px;
-            height: 200px;
-        }
-
-        &.green {
-            background: repeating-linear-gradient(
-                    45deg,
-                    rgba(137, 255, 0, 0.6) 0,
-                    rgba(112, 255, 0, 0.66) 20px,
-                    rgba(0, 0, 255, 0) 20px,
-                    rgba(63, 187, 62, 0) 40px
-            );
-            border: solid 10px rgba(112, 255, 0, 0.66);
-        }
-
-        &.red {
-            background: repeating-linear-gradient(
-                    45deg,
-                    rgba(255, 96, 0, 0.6) 0,
-                    rgba(255, 96, 0, 0.66) 20px,
-                    rgba(255, 96, 0, 0) 20px,
-                    rgba(255, 96, 0, 0) 40px
-            );
-            border: solid 10px rgba(255, 96, 0, 0.6);
-        }
-    }
-
     .question-text {
         margin: 10px;
         color: #414141;
@@ -396,4 +308,51 @@ export default {
         background-color: rgba(255, 0, 0, 0.5);
     }
 }
+
+.tag {
+    position: absolute;
+    z-index: 5;
+    transition: all linear 500ms;
+
+    &.tag-1 {
+        top: 130px;
+        right: 60px;
+    }
+
+    &.tag-2 {
+        top: 340px;
+        left: 60px;
+    }
+
+    &.tag-3 {
+        top: 550px;
+        right: 60px;
+    }
+}
+
+//.line {
+//    background-color: rgba(255,255,255,0.5);
+//    position: absolute;
+//    height: 3px;
+//
+//    &.line-1 {
+//        width: 164px;
+//        top: 205px;
+//        right: 210px;
+//    }
+//
+//    &.line-2 {
+//        width: 164px;
+//        top: 415px;
+//        left: 210px;
+//    }
+//
+//    &.line-3 {
+//        width: 164px;
+//        top: 625px;
+//        right: 210px;
+//    }
+//}
+
+
 </style>

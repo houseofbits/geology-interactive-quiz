@@ -28,13 +28,13 @@
 
         <quiz3-final-page :selected="selectedQuestion===8" :page-answers="pageAnswers" :class="pageClass(8)"/>
 
-        <div v-for="(object, index) in detectedObjects">
+        <div v-for="(object, index) in detectedObjects" :key="index">
             <div :class="['color-'+object.id]" :style="objectPointTransform(object)"
                  class="object-element">{{ object.id }}
             </div>
         </div>
 
-        <element-tag v-for="(a, index) in 8" class="tag" :data-index="index" :class="{visible: selectedQuestion===index}"/>
+        <element-tag v-for="(a, index) in 8" class="tag" :data-index="index" :class="{visible: selectedQuestion===index}" :key="index"/>
 
         <quiz3-navigator :items="pageAnswers" :selected="selectedQuestion"/>
 

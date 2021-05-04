@@ -3,6 +3,8 @@ export default class DetectedObject {
 
         this.id = 0;
 
+        this.regionId = null;
+
         this.result = result;       //remove
 
         this.x = x;

@@ -1,8 +1,18 @@
 <template>
-    <div class="frame clip-column" :data-index="index" @click="toggle" :class="{active: on}">
-        <div class="main-image">
+    <div class="frame clip-column" :data-index="index" :class="{active: isOpen}">
+        <div class="img1"></div>
+        <div class="img2"></div>
+        <div class="img3"></div>
+        <div class="main-image" @click="open">
             <div class="main"></div>
             <div class="content"></div>
+        </div>
+        <div class="text">
+            <slot name="text"/>
+        </div>
+
+        <div class="close-button" @click="close">
+            <i class="fas fa-times"></i>
         </div>
     </div>
 </template>
@@ -20,15 +30,13 @@ export default {
             required: true
         }
     },
-    data() {
-        return {
-            on: false
-        };
-    },
     methods: {
-        toggle() {
-            this.on = !this.on;
-            this.$emit('click', this.on, this.index);
+        open() {
+            this.$emit('click', this.index);
+        },
+        close() {
+
+            this.$emit('close');
         }
     }
 }
@@ -44,6 +52,57 @@ export default {
     height: 768px;
     background: linear-gradient(to bottom, rgba(255, 255, 160, 1) 0%, rgba(255, 255, 255, 1) 72%);
 
+    .text {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 1024px;
+        height: 768px;
+        z-index: 6;
+        opacity: 0;
+        visibility: hidden;
+        transition: all linear 500ms;
+    }
+
+    &.active .text{
+        opacity: 1;
+        visibility: visible;
+    }
+
+    .img1, .img2, .img3 {
+        position: absolute;
+        top: 0;
+        left:0;
+        width: 1024px;
+        height: 768px;
+        visibility: hidden;
+        opacity: 0;
+        transition: all linear 400ms;
+        background-repeat: no-repeat;
+        background-size: contain;
+    }
+
+    &[data-index="0"] {
+        .img1 {
+            background-image: url("@images/q2-bg1-2.jpg");
+            transform: scale(0.6) translate(500px, 380px);
+        }
+        .img2 {
+            background-image: url("@images/q2-bg1-3.jpg");
+            transform: scale(0.6) translate(-500px, -380px);
+        }
+        .img3 {
+            background-image: url("@images/q2-bg1-4.jpg");
+            transform: scale(0.6) translate(500px, -380px);
+        }
+        &.active {
+            .img1, .img2, .img3 {
+                visibility: visible;
+                opacity: 1;
+            }
+        }
+    }
+
     .main-image {
         position: absolute;
         top: 0;
@@ -58,7 +117,6 @@ export default {
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('@images/q2-bg1.jpg');
             transition: all linear 400ms;
         }
 
@@ -68,8 +126,6 @@ export default {
             left: 0;
             width: 100%;
             height: 100%;
-            background-image: url('@images/q2-bg1.jpg');
-            filter: grayscale(100%);
             transition: all linear 400ms;
             opacity: 0;
         }
@@ -84,13 +140,16 @@ export default {
         clip-path: inset(0 80% 0 0);
 
         .main-image .main {
-            background-image: url('@images/q2-bg1.jpg');
+            background-image: url('@images/q2-main1.png');
         }
         .main-image .content {
             background-image: url('@images/q2-bg1.jpg');
         }
+        .main-image {
+            transform: scale(0.9) translate(-480px, 100px);
+        }
         &.active .main-image {
-            transform: scale(0.5) translate(50px, 50px);
+            transform: scale(0.6) translate(-524px, 387px);
         }
     }
 
@@ -98,7 +157,7 @@ export default {
         clip-path: inset(0 60% 0 20%);
 
         .main-image .main {
-            background-image: url('@images/q2-bg2.jpg');
+            background-image: url('@images/q2-main2.png');
         }
 
         .main-image .content {
@@ -106,7 +165,7 @@ export default {
         }
 
         .main-image {
-            //top: 100px;
+            transform: scale(0.9) translate(0px, 240px);
         }
 
         &.active .main-image {
@@ -118,11 +177,17 @@ export default {
         clip-path: inset(0 40% 0 40%);
 
         .main-image .main {
-            background-image: url('@images/q2-bg3.jpg');
+            background-image: url('@images/q2-main3.png');
         }
+
         .main-image .content {
             background-image: url('@images/q2-bg3.jpg');
         }
+
+        .main-image {
+            transform: scale(0.9) translate(30px, 160px);
+        }
+
         &.active .main-image {
             transform: scale(0.5) translate(50px, 50px);
         }
@@ -132,11 +197,16 @@ export default {
         clip-path: inset(0 20% 0 60%);
 
         .main-image .main {
-            background-image: url('@images/q2-bg4.jpg');
+            background-image: url('@images/q2-main4.png');
         }
         .main-image .content {
             background-image: url('@images/q2-bg4.jpg');
         }
+
+        .main-image {
+            transform: scale(0.7) translate(310px, 270px);
+        }
+
         &.active .main-image {
             transform: scale(0.5) translate(50px, 50px);
         }
@@ -146,11 +216,16 @@ export default {
         clip-path: inset(0 0 0 80%);
 
         .main-image .main {
-            background-image: url('@images/q2-bg5.jpg');
+            background-image: url('@images/q2-main5.png');
         }
         .main-image .content {
             background-image: url('@images/q2-bg5.jpg');
         }
+
+        .main-image {
+            transform: scale(0.7) translate(310px, 170px);
+        }
+
         &.active .main-image {
             transform: scale(0.5) translate(50px, 50px);
         }
@@ -166,5 +241,26 @@ export default {
     }
 }
 
+.active .close-button {
+    visibility: visible;
+    opacity: 1;
+}
+
+.close-button {
+    position: absolute;
+    right: 10px;
+    top: 20px;
+    width: 60px;
+    height: 60px;
+    z-index: 50;
+    visibility: hidden;
+    opacity: 0;
+    transition: all linear 500ms;
+
+    i {
+        font-size: 50px;
+        color: gray;
+    }
+}
 
 </style>

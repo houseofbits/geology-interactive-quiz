@@ -2,35 +2,40 @@
     <div class="screen">
         <span class="title">Atpazīsti vietas</span>
 
-        <div :class="{green: isAnswerCorrect(0)}" class="active-area pos-1">{{ text[0].title }}</div>
-        <div :class="{green: isAnswerCorrect(1)}" class="active-area pos-2">{{ text[1].title }}</div>
-        <div :class="{green: isAnswerCorrect(2)}" class="active-area pos-3">{{ text[2].title }}</div>
-        <div :class="{green: isAnswerCorrect(3)}" class="active-area pos-4">{{ text[3].title }}</div>
-        <div :class="{green: isAnswerCorrect(4)}" class="active-area pos-5">{{ text[4].title }}</div>
+<!--        <div :class="{green: isAnswerCorrect(0)}" class="active-area pos-1">{{ text[0].title }}</div>-->
+<!--        <div :class="{green: isAnswerCorrect(1)}" class="active-area pos-2">{{ text[1].title }}</div>-->
+<!--        <div :class="{green: isAnswerCorrect(2)}" class="active-area pos-3">{{ text[2].title }}</div>-->
+<!--        <div :class="{green: isAnswerCorrect(3)}" class="active-area pos-4">{{ text[3].title }}</div>-->
+<!--        <div :class="{green: isAnswerCorrect(4)}" class="active-area pos-5">{{ text[4].title }}</div>-->
 
-        <div class="details" v-if="selectedAnswer !== null">
-            <span class="text">{{ text[selectedAnswer].title }}</span>
-            <span class="text" v-for="val in text[selectedAnswer].description">{{ val }}</span>
-        </div>
+<!--        <div class="details" v-if="selectedAnswer !== null">-->
+<!--            <span class="text">{{ text[selectedAnswer].title }}</span>-->
+<!--            <span class="text" v-for="val in text[selectedAnswer].description">{{ val }}</span>-->
+<!--        </div>-->
 
-        <div v-for="(object, index) in detectedObjects">
-            <div :class="['color-'+object.id]" :style="objectPointTransform(object)"
-                 class="object-element">{{ object.id }}
-            </div>
-        </div>
+<!--        <div v-for="(object, index) in detectedObjects">-->
+<!--            <div :class="['color-'+object.id]" :style="objectPointTransform(object)"-->
+<!--                 class="object-element">{{ object.id }}-->
+<!--            </div>-->
+<!--        </div>-->
 
-        <quiz2-slide :index="0" :is-open="false" @click="testClick"/>
-        <quiz2-slide :index="1" :is-open="false" @click="testClick"/>
-        <quiz2-slide :index="2" :is-open="false" @click="testClick"/>
-        <quiz2-slide :index="3" :is-open="false" @click="testClick"/>
-        <quiz2-slide :index="4" :is-open="false" @click="testClick"/>
+        <quiz2-slide v-for="(n, index) in 5" :index="index" :key="index" :is-open="openIndex===index" @click="testClick" @close="closeSlide">
+            <template v-slot:text>
+                <div class="info">
+                    <h1>{{ text[index].title }}</h1>
+                    <ul>
+                        <li v-for="desc in text[index].description">{{ desc }}</li>
+                    </ul>
+                </div>
+            </template>
+        </quiz2-slide>
 
-        <element-tag v-for="(a, index) in 5" class="tag" :data-index="index" :class="{visible: !isOpen}"/>
-        <div v-for="(a, index) in 5" class="point" :data-index="index" :class="{visible: !isOpen}">
+        <element-tag v-for="(a, index) in 5" class="tag" :data-index="index" :class="{visible: !openIndex}" :key="index"/>
+        <div v-for="(a, index) in 5" class="point" :data-index="index" :class="{visible: !openIndex}" :key="index">
             <div class="line"></div>
         </div>
 
-        <div class="main-title" :class="{visible: !isOpen}">Atpazīsti vietas</div>
+        <div class="main-title" :class="{visible: !openIndex}">Atpazīsti vietas</div>
     </div>
 </template>
 
@@ -46,11 +51,11 @@ import TextLV from "@json/quiz2-text-lv.json";
 const detectionService = new ObjectDetectionService();
 
 const ActiveFeatures = [
-    new DetectionFeature(8, 100, 150, 300, 350),        //Nogāze
-    new DetectionFeature(7, 250, 450, 450, 650),        //Pakāje
-    new DetectionFeature(3, 550, 450, 750, 650),        //Delta
-    new DetectionFeature(3, 400, 150, 600, 350),        //Estuārs
-    new DetectionFeature(3, 700, 150, 900, 350)         //Deltas nogāze
+    new DetectionFeature(2, 0, 0, 203, 350),        //Nogāze
+    new DetectionFeature(7, 203, 0, 407, 450),        //Pakāje
+    new DetectionFeature(3, 407, 0, 612, 350),        //Delta
+    new DetectionFeature(3, 612, 0, 818, 450),        //Estuārs
+    new DetectionFeature(3, 818, 0, 1024, 350)         //Deltas nogāze
 ];
 
 const ColumnPins = {
@@ -82,19 +87,17 @@ export default {
             objectDefinitionsArray: [],
             detectorLoopIntervalId: null,
             time: 0,
-            selectedAnswer: null,
             answerIndex: null,
-
-            isOpen:false
+            openIndex:null
         };
     },
     watch: {
         answerIndex(id) {
-            // this.isDisabled = true;
-            // if (id === null) {
-            //     return;
-            // }
-            this.selectedAnswer = this.answerIndex;
+            if (id === null) {
+                return;
+            }
+            this.isDisabled = true;
+            this.openIndex = id;
         }
     },
     computed: {
@@ -103,12 +106,12 @@ export default {
         },
     },
     methods: {
-        testClick(state) {
-            this.isOpen = state;
+        testClick(index) {
+            this.openIndex = index;
         },
-
-        isAnswerCorrect(i) {
-            return this.selectedAnswer === i;
+        closeSlide() {
+            this.openIndex = null;
+            this.isDisabled = false;
         },
         objectPointTransform(detectedPosition) {
             return 'transform:translate(' + detectedPosition.x + 'px,' + detectedPosition.y + 'px)';
@@ -202,10 +205,11 @@ export default {
         color: gray;
         position: absolute;
         width: 1024px;
+        top:20px;
         left: 0;
         height: 80px;
         text-align: center;
-        font-size: 50px;
+        font-size: 65px;
         line-height: 80px;
         text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         background: linear-gradient(to bottom, rgba(255, 183, 107, 1) 0%, rgba(255, 167, 61, 1) 55%, rgba(255, 124, 0, 1) 87%, rgba(255, 127, 4, 1) 100%);
@@ -390,7 +394,7 @@ export default {
     background-color: white;
     width: 40px;
     height: 40px;
-    z-index: 5;
+    z-index: 4;
     border-radius: 50%;
     opacity: 0;
     transition: all linear 500ms;
@@ -447,6 +451,21 @@ export default {
         .line {
             height: 380px;
         }
+    }
+}
+.info {
+    background-color: rgba(255,255,255,0.6);
+    margin:50px;
+    color: #414141;
+    padding: 20px;
+
+    h1 {
+        font-size: 50px;
+    }
+    ul li {
+        font-size: 23px;
+        line-height: 23px;
+        padding-top: 25px;
     }
 }
 </style>

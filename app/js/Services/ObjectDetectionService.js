@@ -418,6 +418,18 @@ export default class ObjectDetectionService {
         return matched;
     }
 
-
+    /**
+     * @param {DetectedObject[]} results
+     * @param {DetectionFeature[]} regions
+     */
+    updateDetectedWithFeature(results, regions) {
+        for (const region of regions) {
+            for (const result of results) {
+                if (this.isDetectionResultIntersectedWithFeature(result, region)) {
+                    result.regionId = region.id;
+                }
+            }
+        }
+    }
 
 }
