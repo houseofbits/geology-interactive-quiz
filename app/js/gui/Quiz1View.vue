@@ -37,11 +37,9 @@
 
 <script>
 
-import ObjectDetectionService from '@js/Services/ObjectDetectionService';
 import DetectionFeature from "@js/Stuctures/DetectionFeature";
 import ElementTag from "./components/ElementTag.vue";
 import ObjectRecognitionServiceInstance from '@js/Services/ObjectRecongnitionService.js';
-const detectionService = new ObjectDetectionService();
 
 const CorrectAnswerAId = 8;
 const CorrectAnswerBId = 7;

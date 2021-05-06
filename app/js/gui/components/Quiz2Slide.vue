@@ -103,6 +103,74 @@ export default {
         }
     }
 
+    &[data-index="1"] {
+        .img1 {
+            background-image: url("@images/q2-bg2-2.jpg");
+            transform: scale(2.0) translate(220px, -200px);
+        }
+        .img2 {
+            background-image: url("@images/q2-bg2-3.jpg");
+            transform: scale(0.6) translate(500px,  388px);
+        }
+        &.active {
+            .img1, .img2 {
+                visibility: visible;
+                opacity: 1;
+            }
+        }
+    }
+
+    &[data-index="2"] {
+        .img1 {
+            background-image: url("@images/q2-bg3-3.jpg");
+            transform: scale(2) translate(120px, -350px);
+        }
+        .img2 {
+            background-image: url("@images/q2-bg3-2.jpg");
+            transform: scale(0.6) translate(500px,  330px);
+        }
+        &.active {
+            .img1, .img2 {
+                visibility: visible;
+                opacity: 1;
+            }
+        }
+    }
+
+    &[data-index="3"] {
+        .img1 {
+            background-image: url("@images/q2-bg4-3.jpg");
+            transform: scale(1.2) translate(80px, -350px);
+        }
+        .img2 {
+            background-image: url("@images/q2-bg4-2.jpg");
+            transform: scale(0.6) translate(-500px,  330px);
+        }
+        &.active {
+            .img1, .img2 {
+                visibility: visible;
+                opacity: 1;
+            }
+        }
+    }
+
+    &[data-index="4"] {
+        .img1 {
+            background-image: url("@images/q2-bg5-3.jpg");
+            transform: scale(1.2) translate(80px, -350px);
+        }
+        .img2 {
+            background-image: url("@images/q2-bg5-2.jpg");
+            transform: scale(0.6) translate(-500px,  330px);
+        }
+        &.active {
+            .img1, .img2 {
+                visibility: visible;
+                opacity: 1;
+            }
+        }
+    }
+
     .main-image {
         position: absolute;
         top: 0;
@@ -169,7 +237,7 @@ export default {
         }
 
         &.active .main-image {
-            transform: scale(0.5) translate(50px, 50px);
+            transform: scale(0.6) translate(-524px, 387px);
         }
     }
 
@@ -189,7 +257,7 @@ export default {
         }
 
         &.active .main-image {
-            transform: scale(0.5) translate(50px, 50px);
+            transform: scale(0.6) translate(-524px, 330px);
         }
     }
 
@@ -208,7 +276,7 @@ export default {
         }
 
         &.active .main-image {
-            transform: scale(0.5) translate(50px, 50px);
+            transform: scale(0.6) translate(524px, 330px);
         }
     }
 
@@ -227,7 +295,7 @@ export default {
         }
 
         &.active .main-image {
-            transform: scale(0.5) translate(50px, 50px);
+            transform: scale(0.6) translate(524px, 330px);
         }
     }
 
@@ -259,7 +327,7 @@ export default {
 
     i {
         font-size: 50px;
-        color: gray;
+        color: black;
     }
 }
 

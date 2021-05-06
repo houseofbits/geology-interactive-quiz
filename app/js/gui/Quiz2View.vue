@@ -2,24 +2,8 @@
     <div class="screen">
         <span class="title">Atpazīsti vietas</span>
 
-<!--        <div :class="{green: isAnswerCorrect(0)}" class="active-area pos-1">{{ text[0].title }}</div>-->
-<!--        <div :class="{green: isAnswerCorrect(1)}" class="active-area pos-2">{{ text[1].title }}</div>-->
-<!--        <div :class="{green: isAnswerCorrect(2)}" class="active-area pos-3">{{ text[2].title }}</div>-->
-<!--        <div :class="{green: isAnswerCorrect(3)}" class="active-area pos-4">{{ text[3].title }}</div>-->
-<!--        <div :class="{green: isAnswerCorrect(4)}" class="active-area pos-5">{{ text[4].title }}</div>-->
-
-<!--        <div class="details" v-if="selectedAnswer !== null">-->
-<!--            <span class="text">{{ text[selectedAnswer].title }}</span>-->
-<!--            <span class="text" v-for="val in text[selectedAnswer].description">{{ val }}</span>-->
-<!--        </div>-->
-
-<!--        <div v-for="(object, index) in detectedObjects">-->
-<!--            <div :class="['color-'+object.id]" :style="objectPointTransform(object)"-->
-<!--                 class="object-element">{{ object.id }}-->
-<!--            </div>-->
-<!--        </div>-->
-
-        <quiz2-slide v-for="(n, index) in 5" :index="index" :key="index" :is-open="openIndex===index" @click="testClick" @close="closeSlide">
+        <quiz2-slide v-for="(n, index) in 5" :index="index" :key="'slide'+index" :is-open="openIndex===index" @click="testClick"
+                     @close="closeSlide">
             <template v-slot:text>
                 <div class="info">
                     <h1>{{ text[index].title }}</h1>
@@ -30,8 +14,9 @@
             </template>
         </quiz2-slide>
 
-        <element-tag v-for="(a, index) in 5" class="tag" :data-index="index" :class="{visible: !openIndex}" :key="index"/>
-        <div v-for="(a, index) in 5" class="point" :data-index="index" :class="{visible: !openIndex}" :key="index">
+        <element-tag v-for="(a, index) in 5" class="tag" :data-index="index" :class="{visible: !openIndex}"
+                     :key="'element'+index"/>
+        <div v-for="(a, index) in 5" class="point" :data-index="index" :class="{visible: !openIndex}" :key="'line'+index">
             <div class="line"></div>
         </div>
 
@@ -43,27 +28,16 @@
 
 import Quiz2Slide from "./components/Quiz2Slide.vue";
 import ElementTag from "./components/ElementTag.vue";
-import TouchPoint from "@js/Stuctures/TouchPoint";
-import ObjectDetectionService from '@js/Services/ObjectDetectionService';
 import DetectionFeature from "@js/Stuctures/DetectionFeature";
 import TextLV from "@json/quiz2-text-lv.json";
-
-const detectionService = new ObjectDetectionService();
-
-const ActiveFeatures = [
-    new DetectionFeature(2, 0, 0, 203, 350),        //Nogāze
-    new DetectionFeature(7, 203, 0, 407, 450),        //Pakāje
-    new DetectionFeature(3, 407, 0, 612, 350),        //Delta
-    new DetectionFeature(3, 612, 0, 818, 450),        //Estuārs
-    new DetectionFeature(3, 818, 0, 1024, 350)         //Deltas nogāze
-];
+import ObjectRecognitionServiceInstance from '@js/Services/ObjectRecongnitionService.js';
 
 const ColumnPins = {
     upper: [
-        3,14,15,4,11
+        3, 14, 15, 4, 11
     ],
     lower: [
-        9,8,13,7,10
+        9, 8, 13, 7, 10
     ]
 };
 
@@ -72,6 +46,8 @@ const AnswerState = {
     INCORRECT: 1,
     CORRECT: 2
 };
+
+const CorrectAnswersIds = [1, 2, 3, 4, 5];
 
 export default {
     name: "Quiz2View",
@@ -88,7 +64,7 @@ export default {
             detectorLoopIntervalId: null,
             time: 0,
             answerIndex: null,
-            openIndex:null
+            openIndex: null
         };
     },
     watch: {
@@ -113,35 +89,12 @@ export default {
             this.openIndex = null;
             this.isDisabled = false;
         },
-        objectPointTransform(detectedPosition) {
-            return 'transform:translate(' + detectedPosition.x + 'px,' + detectedPosition.y + 'px)';
-        },
-        detectSmart() {
-            this.detectedObjects = detectionService.detectObjects(this.time, this.touches, this.objectDefinitionsArray, this.detectedObjects);
-            this.checkForAnswer();
-        },
-        runDetectionLoop() {
-            this.detectorLoopIntervalId = setInterval(() => {
-                this.detectSmart();
-                this.time += 16;
-            }, 16);
-        },
-        checkForAnswer() {
-            if (!this.isDisabled) {
-                let answerIndex = null;
-                if (this.detectedObjects.length > 0) {
-                    for (let i = 0; i < ActiveFeatures.length; i++) {
-                        let featureResults = detectionService.matchDetectedWithFeature(this.detectedObjects, ActiveFeatures[i]);
-                        if (featureResults.length > 0) {
-                            for (const result of featureResults) {
-                                if (result.id === ActiveFeatures[i].id) {
-                                    answerIndex = i;
-                                }
-                            }
-                        }
-                    }
-                }
-                this.answerIndex = answerIndex;
+        checkAnswer(result) {
+            const id = result.regionId;
+            if (CorrectAnswersIds[id] === result.id) {
+                this.answerIndex = id;
+            } else {
+                this.answerIndex = null;
             }
         },
         requestPortPinsWithParams(params) {
@@ -161,32 +114,34 @@ export default {
                 params['pin' + v] = (i === column) ? 1 : 0;
             }
             this.requestPortPinsWithParams(params);
+        },
+        onNewObjectDetected(result) {
+            this.checkAnswer(result);
+        },
+        onObjectRemoved(result) {
+        },
+        onObjectUpdated(result) {
+            this.checkAnswer(result);
         }
     },
     mounted() {
-        document.addEventListener('touchstart', function (event) {
-            for (const touch of event.touches) {
-                this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
-            }
-        }.bind(this), false);
-        document.addEventListener('touchend', function (event) {
-            this.touches = [];
-        }, false);
-        document.addEventListener('touchmove', function (event) {
-            this.touches = [];
-            for (const touch of event.touches) {
-                this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
-            }
-        }.bind(this), false);
 
         //To disable context menu
         window.addEventListener("contextmenu", function (e) {
             e.preventDefault();
         });
 
-        this.objectDefinitionsArray = detectionService.getObjectDefinitions();
+        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(0, 0, 0, 203, 350));
+        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(1, 203, 0, 407, 450));
+        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(2, 407, 0, 612, 350));
+        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(3, 612, 0, 818, 450));
+        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(4, 818, 0, 1024, 350));
 
-        this.runDetectionLoop();
+        ObjectRecognitionServiceInstance.detectedHandler = this.onObjectUpdated;
+        ObjectRecognitionServiceInstance.detectedNewHandler = this.onNewObjectDetected;
+        ObjectRecognitionServiceInstance.detectedLostHandler = this.onObjectRemoved;
+
+        ObjectRecognitionServiceInstance.runDetectionLoop();
 
     }
 }
@@ -205,7 +160,7 @@ export default {
         color: gray;
         position: absolute;
         width: 1024px;
-        top:20px;
+        top: 20px;
         left: 0;
         height: 80px;
         text-align: center;
@@ -226,7 +181,7 @@ export default {
 
     .details {
         position: absolute;
-        background-color: rgba(100,100,100,0.7);
+        background-color: rgba(100, 100, 100, 0.7);
         top: 200px;
         bottom: 200px;
         left: 100px;
@@ -246,9 +201,9 @@ export default {
     .active-area {
         position: absolute;
         width: 200px;
-        height:200px;
+        height: 200px;
         border-radius: 60px;
-        color:white;
+        color: white;
         font-size: 25px;
         text-align: center;
         line-height: 200px;
@@ -261,28 +216,32 @@ export default {
         );
         //Nogāze
         &.pos-1 {
-            top:150px;
-            left:100px;
+            top: 150px;
+            left: 100px;
         }
+
         //Pakāje
         &.pos-2 {
-            top:450px;
-            left:250px;
+            top: 450px;
+            left: 250px;
         }
+
         //Delta
         &.pos-3 {
-            top:450px;
-            left:550px;
+            top: 450px;
+            left: 550px;
         }
+
         //Estuārs
         &.pos-4 {
-            top:150px;
-            left:400px;
+            top: 150px;
+            left: 400px;
         }
+
         //Deltas nogāze
         &.pos-5 {
-            top:150px;
-            left:700px;
+            top: 150px;
+            left: 700px;
         }
 
         &.green {
@@ -372,23 +331,28 @@ export default {
         top: 120px;
         left: 27.4px;
     }
+
     &[data-index="1"] {
         top: 210px;
         left: 232.2px;
     }
+
     &[data-index="2"] {
         top: 120px;
         left: 437px;
     }
+
     &[data-index="3"] {
         top: 210px;
         left: 641.8px;
     }
+
     &[data-index="4"] {
         top: 120px;
         left: 846.6px;
     }
 }
+
 .point {
     position: absolute;
     background-color: white;
@@ -408,8 +372,8 @@ export default {
         width: 3px;
         height: 200px;
         background-color: white;
-        bottom:40px;
-        left:18px;
+        bottom: 40px;
+        left: 18px;
     }
 
     &[data-index="0"] {
@@ -420,6 +384,7 @@ export default {
             height: 380px;
         }
     }
+
     &[data-index="1"] {
         left: 287.2px;
         bottom: 80px;
@@ -428,6 +393,7 @@ export default {
             height: 290px;
         }
     }
+
     &[data-index="2"] {
         left: 492px;
         bottom: 80px;
@@ -436,6 +402,7 @@ export default {
             height: 380px;
         }
     }
+
     &[data-index="3"] {
         left: 696.8px;
         bottom: 80px;
@@ -444,6 +411,7 @@ export default {
             height: 290px;
         }
     }
+
     &[data-index="4"] {
         left: 901.6px;
         bottom: 80px;
@@ -453,15 +421,17 @@ export default {
         }
     }
 }
+
 .info {
-    background-color: rgba(255,255,255,0.6);
-    margin:50px;
-    color: #414141;
+    background-color: rgba(255, 255, 255, 0.6);
+    margin: 50px;
+    color: black;
     padding: 20px;
 
     h1 {
         font-size: 50px;
     }
+
     ul li {
         font-size: 23px;
         line-height: 23px;
