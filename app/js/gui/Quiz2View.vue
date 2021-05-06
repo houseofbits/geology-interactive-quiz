@@ -67,6 +67,7 @@ export default {
                 return;
             }
             this.openIndex = id;
+            this.requestLightState(this.openIndex);
         }
     },
     computed: {
