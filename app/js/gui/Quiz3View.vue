@@ -15,7 +15,7 @@
         </div>
 
         <quiz-page
-            v-for="(n, index) in 8" :key="index"
+            v-for="(n, index) in 8"
             :finished="isPageFinished"
             :selected="index===selectedQuestion"
             :title="text[index].title"
@@ -24,17 +24,18 @@
             :is-correct-answer="isCorrectAnswer"
             :number-of-errors="numberOfIncorrectAnswers"
             :class="pageClass(index)"
+            :key="'page'+index"
         />
 
         <quiz3-final-page :selected="selectedQuestion===8" :page-answers="pageAnswers" :class="pageClass(8)"/>
 
-        <div v-for="(object, index) in detectedObjects" :key="index">
-            <div :class="['color-'+object.id]" :style="objectPointTransform(object)"
-                 class="object-element">{{ object.id }}
-            </div>
-        </div>
+<!--        <div v-for="(object, index) in detectedObjects" :key="'objelem'+index">-->
+<!--            <div :class="['color-'+object.id]" :style="objectPointTransform(object)"-->
+<!--                 class="object-element">{{ object.id }}-->
+<!--            </div>-->
+<!--        </div>-->
 
-        <element-tag v-for="(a, index) in 8" class="tag" :data-index="index" :class="{visible: selectedQuestion===index}" :key="index"/>
+        <element-tag v-for="(a, index) in 8" class="tag" :data-index="index" :class="{visible: selectedQuestion===index}" :key="'element'+index"/>
 
         <quiz3-navigator :items="pageAnswers" :selected="selectedQuestion"/>
 
@@ -46,26 +47,14 @@
 <script>
 
 import ElementTag from "./components/ElementTag.vue";
-import TouchPoint from "@js/Stuctures/TouchPoint";
-import ObjectDetectionService from '@js/Services/ObjectDetectionService';
 import DetectionFeature from "@js/Stuctures/DetectionFeature";
 import QuizPage from "@js/gui/QuizPage.vue";
 import Quiz3Navigator from '@js/gui/components/Quiz3Navigator.vue';
 import TextLV from "@json/quiz3-text-lv.json";
 import Quiz3FinalPage from "@js/gui/components/Quiz3FinalPage.vue";
+import ObjectRecognitionServiceInstance from '@js/Services/ObjectRecongnitionService.js';
 
-const detectionService = new ObjectDetectionService();
-
-const ActiveFeatures = [
-    new DetectionFeature(1, 100, 400, 920, 720),
-    new DetectionFeature(2, 100, 400, 920, 720),
-    new DetectionFeature(3, 100, 400, 920, 720),
-    new DetectionFeature(4, 100, 400, 920, 720),
-    new DetectionFeature(5, 100, 400, 920, 720),
-    new DetectionFeature(6, 100, 400, 920, 720),
-    new DetectionFeature(7, 100, 400, 920, 720),
-    new DetectionFeature(8, 100, 400, 920, 720)
-];
+const CorrectAnswersIds = [1, 2, 3, 4, 5, 6, 7 ,8];
 
 const AnswerState = {
     UNKNOWN: 0,
@@ -115,8 +104,8 @@ export default {
             if (id === null) {
                 return;
             }
-            const featureId = ActiveFeatures[this.selectedQuestion].id;
-            if (id === featureId) {
+
+            if (CorrectAnswersIds[this.selectedQuestion] === id) {
                 this.selectedCorrectAnswer();
             } else {
                 if (!this.wrongAnswers.includes(id)) {
@@ -127,29 +116,16 @@ export default {
         }
     },
     computed: {
-        isAnswerCorrect() {
-            const featureId = ActiveFeatures[this.selectedQuestion].id;
-            return this.answerId === featureId;
-        },
-        isAnswerIncorrect() {
-            if (this.answerId === null) {
-                return false;
-            }
-            const featureId = ActiveFeatures[this.selectedQuestion].id;
-            return this.answerId !== featureId;
-        },
         text() {
             return TextLV;
         }
     },
     methods: {
         selectedCorrectAnswer() {
-            this.resetDetector();
             this.isCorrectAnswer = true;
             this.continueNextDelayed();
         },
         selectedWrongAnswer() {
-            this.resetDetector();
             this.numberOfIncorrectAnswers++;
             if (this.numberOfIncorrectAnswers > 2) {
                 this.continueNextDelayed();
@@ -191,37 +167,11 @@ export default {
         objectPointTransform(detectedPosition) {
             return 'transform:translate(' + detectedPosition.x + 'px,' + detectedPosition.y + 'px)';
         },
-        detectSmart() {
-            if (!this.isDisabled) {
-                this.detectedObjects = detectionService.detectObjects(this.time, this.touches, this.objectDefinitionsArray, this.detectedObjects);
-                this.checkForAnswer();
-            }
-        },
-        runDetectionLoop() {
-            this.detectorLoopIntervalId = setInterval(() => {
-                this.detectSmart();
-                this.time += 16;
-            }, 16);
-        },
-        checkForAnswer() {
-
-            let answerId = null;
-
-            if (this.detectedObjects.length > 0) {
-
-                const feature = ActiveFeatures[this.selectedQuestion];
-                let featureResults = detectionService.matchDetectedWithFeature(this.detectedObjects, feature);
-                if (featureResults.length > 0) {
-                    for (const result of featureResults) {
-                        answerId = result.id;
-                    }
-                }
-            }
-            this.answerId = answerId;
+        checkAnswer(result) {
+            this.answerId = result.id;
         },
         resetDetector() {
-            this.touches = [];
-            this.detectedObjects = [];
+            ObjectRecognitionServiceInstance.resetDetector();
         },
         reset() {
             this.selectedQuestion = 0;
@@ -232,8 +182,7 @@ export default {
             this.numberOfIncorrectAnswers = 0;
             this.isPageFinished = false;
             this.wrongAnswers = [];
-            this.detectedObjects = [];
-            this.touches = [];
+            this.answerId = null;
             if (this.selectedQuestion === 0) {
                 this.isFinalViewVisible = false;
                 this.pageAnswers = [
@@ -248,7 +197,6 @@ export default {
                 ];
             }
             this.setQuestionState(AnswerState.CURRENT);
-            this.isDisabled = false;
             this.resetDetector();
         },
         continueNextDelayed() {
@@ -277,36 +225,36 @@ export default {
         updateResetTimer() {
             clearTimeout(this.resetTimeout);
             this.resetTimeout = setTimeout(this.reset, 60000);
-        }
+        },
+        onNewObjectDetected(result) {
+            this.checkAnswer(result);
+        },
+        onObjectRemoved(result) {   },
+        onObjectUpdated(result) {   }
     },
     mounted() {
-        document.addEventListener('touchstart', function (event) {
-            //this.touches = [];
-            for (const touch of event.touches) {
-                this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
-            }
-            this.updateResetTimer();
-        }.bind(this), false);
-        document.addEventListener('touchend', function (event) {
-        }, false);
-        document.addEventListener('touchmove', function (event) {
-            this.touches = [];
-            for (const touch of event.touches) {
-                this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
-            }
-            this.updateResetTimer();
-        }.bind(this), false);
 
         //To disable context menu
         window.addEventListener("contextmenu", function (e) {
             e.preventDefault();
         });
 
-        this.objectDefinitionsArray = detectionService.getObjectDefinitions();
-
-        this.runDetectionLoop();
-
         this.initPage();
+
+        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(1, 100, 400, 920, 720));
+        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(2, 100, 400, 920, 720));
+        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(3, 100, 400, 920, 720));
+        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(4, 100, 400, 920, 720));
+        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(5, 100, 400, 920, 720));
+        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(6, 100, 400, 920, 720));
+        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(7, 100, 400, 920, 720));
+        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(8, 100, 400, 920, 720));
+
+        ObjectRecognitionServiceInstance.detectedHandler = this.onObjectUpdated;
+        ObjectRecognitionServiceInstance.detectedNewHandler = this.onNewObjectDetected;
+        ObjectRecognitionServiceInstance.detectedLostHandler = this.onObjectRemoved;
+
+        ObjectRecognitionServiceInstance.runDetectionLoop();
 
     }
 }
@@ -360,7 +308,7 @@ export default {
 
         i {
             font-size: 50px;
-            color: gray;
+            color: black;
         }
     }
 

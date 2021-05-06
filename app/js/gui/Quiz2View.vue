@@ -57,12 +57,6 @@ export default {
     },
     data() {
         return {
-            isDisabled: false,
-            touches: [],
-            detectedObjects: [],
-            objectDefinitionsArray: [],
-            detectorLoopIntervalId: null,
-            time: 0,
             answerIndex: null,
             openIndex: null
         };
@@ -72,7 +66,6 @@ export default {
             if (id === null) {
                 return;
             }
-            this.isDisabled = true;
             this.openIndex = id;
         }
     },
@@ -87,7 +80,6 @@ export default {
         },
         closeSlide() {
             this.openIndex = null;
-            this.isDisabled = false;
         },
         checkAnswer(result) {
             const id = result.regionId;

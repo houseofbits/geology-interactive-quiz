@@ -245,7 +245,7 @@ export default {
 
         i {
             font-size: 50px;
-            color: gray;
+            color: black;
         }
     }
 
