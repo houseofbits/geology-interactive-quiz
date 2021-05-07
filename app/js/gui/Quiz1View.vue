@@ -7,9 +7,9 @@
             <i class="fas fa-sync-alt" @click="reset"></i>
         </div>
 
-        <element-tag class="tag tag-1"/>
-        <element-tag class="tag tag-2"/>
-        <element-tag class="tag tag-3"/>
+        <element-tag class="tag tag-1" :correct="answerState[0]===2" :incorrect="answerState[0]===1"/>
+        <element-tag class="tag tag-2" :correct="answerState[1]===2" :incorrect="answerState[1]===1"/>
+        <element-tag class="tag tag-3" :correct="answerState[2]===2" :incorrect="answerState[2]===1"/>
 
         <div class="column1" :class="{correct: isAnswerACorrect, wrong: isAnswerAIncorrect}">
             <div class="question-text">Iezis veidojies
