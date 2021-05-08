@@ -15,6 +15,8 @@
         </quiz2-slide>
 
         <element-tag v-for="(a, index) in 5" class="tag" :data-index="index" :class="{visible: !openIndex}"
+                     :correct="isTagCorrect(index)"
+                     :incorrect="isTagIncorrect(index)"
                      :key="'element'+index"/>
         <div v-for="(a, index) in 5" class="point" :data-index="index" :class="{visible: !openIndex}" :key="'line'+index">
             <div class="line"></div>
@@ -26,6 +28,7 @@
 
 <script>
 
+import axios from 'axios';
 import Quiz2Slide from "./components/Quiz2Slide.vue";
 import ElementTag from "./components/ElementTag.vue";
 import DetectionFeature from "@js/Stuctures/DetectionFeature";
@@ -58,7 +61,29 @@ export default {
     data() {
         return {
             answerIndex: null,
-            openIndex: null
+            openIndex: null,
+            tagState: [
+                {
+                    state: 0,
+                    timer: null
+                },
+                {
+                    state: 0,
+                    timer: null
+                },
+                {
+                    state: 0,
+                    timer: null
+                },
+                {
+                    state: 0,
+                    timer: null
+                },
+                {
+                    state: 0,
+                    timer: null
+                },
+            ],
         };
     },
     watch: {
@@ -76,18 +101,45 @@ export default {
         },
     },
     methods: {
+        isTagCorrect(index) {
+            return this.tagState[index].state === AnswerState.CORRECT;
+        },
+        isTagIncorrect(index) {
+            return this.tagState[index].state === AnswerState.INCORRECT;
+        },
+        setTagAnswerState(index, state){
+            this.tagState[index].state = state;
+            clearTimeout(this.tagState[index].timer);
+            if (state === AnswerState.CORRECT || state === AnswerState.INCORRECT) {
+                this.tagState[index].timer = setTimeout(() => {
+                    this.setTagAnswerState(index, AnswerState.UNKNOWN);
+                }, 2000);
+            }
+        },
+        clearTagState(){
+            this.setTagAnswerState(0, AnswerState.UNKNOWN);
+            this.setTagAnswerState(1, AnswerState.UNKNOWN);
+            this.setTagAnswerState(2, AnswerState.UNKNOWN);
+            this.setTagAnswerState(3, AnswerState.UNKNOWN);
+            this.setTagAnswerState(4, AnswerState.UNKNOWN);
+        },
         testClick(index) {
             this.openIndex = index;
         },
         closeSlide() {
             this.openIndex = null;
+            this.answerIndex = null;
+            ObjectRecognitionServiceInstance.resetDetector();
+            this.clearTagState();
         },
         checkAnswer(result) {
             const id = result.regionId;
             if (CorrectAnswersIds[id] === result.id) {
                 this.answerIndex = id;
+                this.setTagAnswerState(id, AnswerState.CORRECT);
             } else {
                 this.answerIndex = null;
+                this.setTagAnswerState(id, AnswerState.INCORRECT);
             }
         },
         requestPortPinsWithParams(params) {
@@ -153,6 +205,7 @@ export default {
         color: gray;
         position: absolute;
         width: 1024px;
+        font-weight: bold;
         top: 20px;
         left: 0;
         height: 80px;
@@ -160,7 +213,8 @@ export default {
         font-size: 65px;
         line-height: 80px;
         text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-        background: linear-gradient(to bottom, rgba(255, 183, 107, 1) 0%, rgba(255, 167, 61, 1) 55%, rgba(255, 124, 0, 1) 87%, rgba(255, 127, 4, 1) 100%);
+        //background: linear-gradient(to bottom, rgba(255, 183, 107, 1) 0%, rgba(255, 167, 61, 1) 55%, rgba(255, 124, 0, 1) 87%, rgba(255, 127, 4, 1) 100%);
+        background: linear-gradient(to bottom, rgba(28,214,0,1) 0%,rgba(5,109,0,1) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         opacity: 0.0;

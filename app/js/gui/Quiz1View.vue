@@ -7,11 +7,12 @@
             <i class="fas fa-sync-alt" @click="reset"></i>
         </div>
 
-        <element-tag class="tag tag-1" :correct="answerState[0]===2" :incorrect="answerState[0]===1"/>
-        <element-tag class="tag tag-2" :correct="answerState[1]===2" :incorrect="answerState[1]===1"/>
-        <element-tag class="tag tag-3" :correct="answerState[2]===2" :incorrect="answerState[2]===1"/>
+        <element-tag class="tag tag-1" :correct="isAnswerACorrect" :incorrect="isAnswerAIncorrect"/>
+        <element-tag class="tag tag-2" :correct="isAnswerBCorrect" :incorrect="isAnswerBIncorrect"/>
+        <element-tag class="tag tag-3" :correct="isAnswerCCorrect" :incorrect="isAnswerCIncorrect"/>
 
         <div class="column1" :class="{correct: isAnswerACorrect, wrong: isAnswerAIncorrect}">
+            <div class="answer">OLIS</div>
             <div class="question-text">Iezis veidojies
                 dēdēšanas procesā kalnu masīvu nogāzēs un kalnu upēs. Iežu
                 atlūzas ir noapaļotas.
@@ -19,6 +20,7 @@
         </div>
 
         <div class="column2" :class="{correct: isAnswerBCorrect, wrong: isAnswerBIncorrect}">
+            <div class="answer">SMILŠAKMENS</div>
             <div class="question-text">Iezis ir veidojies
                 ilgstoša ūdens transporta rezultātā. Ieža graudi ir
                 noapaļoti, un tā sastāvā dominē minerāls kvarcs.
@@ -26,6 +28,7 @@
         </div>
 
         <div class="column3" :class="{correct: isAnswerCCorrect, wrong: isAnswerCIncorrect}">
+            <div class="answer">MĀLS</div>
             <div class="question-text">Iezis veidojies,
                 uzkrājoties ļoti sīkām iežu daļiņām ūdens tilpnēs mierīgos
                 apstākļos. To galvenā sastāvdaļa ir īpaša minerālu grupa – mālu minerāli.
@@ -171,6 +174,7 @@ export default {
         display: inline-block;
         color: gray;
         position: absolute;
+        font-weight: bold;
         width: 1024px;
         left: 0;
         height: 80px;
@@ -178,9 +182,22 @@ export default {
         font-size: 50px;
         line-height: 80px;
         text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-        background: linear-gradient(to bottom, rgba(255, 183, 107, 1) 0%, rgba(255, 167, 61, 1) 55%, rgba(255, 124, 0, 1) 87%, rgba(255, 127, 4, 1) 100%);
+        //background: linear-gradient(to bottom, rgba(255, 183, 107, 1) 0%, rgba(255, 167, 61, 1) 55%, rgba(255, 124, 0, 1) 87%, rgba(255, 127, 4, 1) 100%);
+        background: linear-gradient(to bottom, rgba(28,214,0,1) 0%,rgba(5,109,0,1) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
+    }
+
+    .answer {
+        position: absolute;
+        top:-45px;
+        font-size: 30px;
+        font-weight: bold;
+        text-shadow: 0 6px 20px rgba(0, 0, 0, 1);
+        color: white;
+        display: block;
+        transition: all linear 1000ms;
+        opacity: 0;
     }
 
     .column1 {
@@ -191,6 +208,15 @@ export default {
         height: 120px;
         background-color: rgba(255,255,255,0.5);
         padding-left: 20px;
+        transition: all linear 500ms;
+
+        .answer {
+            right: 20px;
+        }
+
+        &.correct .answer {
+            opacity: 1;
+        }
     }
 
     .column2 {
@@ -201,6 +227,15 @@ export default {
         height: 120px;
         background-color: rgba(255,255,255,0.5);
         padding-right: 20px;
+        transition: all linear 500ms;
+
+        .answer {
+            left: 20px;
+        }
+
+        &.correct .answer {
+            opacity: 1;
+        }
     }
 
     .column3 {
@@ -211,6 +246,15 @@ export default {
         height: 135px;
         background-color: rgba(255,255,255,0.5);
         padding-left: 20px;
+        transition: all linear 500ms;
+
+        .answer {
+            right: 20px;
+        }
+
+        &.correct .answer {
+            opacity: 1;
+        }
     }
 
     .correct {
