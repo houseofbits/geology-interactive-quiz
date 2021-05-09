@@ -34,23 +34,8 @@ import ElementTag from "./components/ElementTag.vue";
 import DetectionFeature from "@js/Stuctures/DetectionFeature";
 import TextLV from "@json/quiz2-text-lv.json";
 import ObjectRecognitionServiceInstance from '@js/Services/ObjectRecongnitionService.js';
-
-const ColumnPins = {
-    upper: [
-        3, 14, 15, 4, 11
-    ],
-    lower: [
-        9, 8, 13, 7, 10
-    ]
-};
-
-const AnswerState = {
-    UNKNOWN: 0,
-    INCORRECT: 1,
-    CORRECT: 2
-};
-
-const CorrectAnswersIds = [1, 2, 3, 4, 5];
+import Config from "@json/config.json";
+import {AnswerState} from "@js/Stuctures/Constants.js";
 
 export default {
     name: "Quiz2View",
@@ -134,7 +119,7 @@ export default {
         },
         checkAnswer(result) {
             const id = result.regionId;
-            if (CorrectAnswersIds[id] === result.id) {
+            if (Config.quiz2.correctAnswerIds[id] === result.id) {
                 this.answerIndex = id;
                 this.setTagAnswerState(id, AnswerState.CORRECT);
             } else {
@@ -143,19 +128,20 @@ export default {
             }
         },
         requestPortPinsWithParams(params) {
-            axios.get('http://raspberry.pi:8888/set-port-pins', {
+            axios.get(Config.quiz2.endpointUrl, {
                 responseType: 'text',
                 params: params
             });
         },
         requestLightState(column) {
+            const pins = Config.quiz2.columnPins;
             let params = {
                 port: 0
             };
-            for (const [i, v] of ColumnPins.lower.entries()) {
+            for (const [i, v] of pins.lower.entries()) {
                 params['pin' + v] = (i === column) ? 1 : 0;
             }
-            for (const [i, v] of ColumnPins.upper.entries()) {
+            for (const [i, v] of pins.upper.entries()) {
                 params['pin' + v] = (i === column) ? 1 : 0;
             }
             this.requestPortPinsWithParams(params);

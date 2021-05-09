@@ -29,13 +29,10 @@
 
         <quiz3-final-page :selected="selectedQuestion===8" :page-answers="pageAnswers" :class="pageClass(8)"/>
 
-<!--        <div v-for="(object, index) in detectedObjects" :key="'objelem'+index">-->
-<!--            <div :class="['color-'+object.id]" :style="objectPointTransform(object)"-->
-<!--                 class="object-element">{{ object.id }}-->
-<!--            </div>-->
-<!--        </div>-->
-
-        <element-tag v-for="(a, index) in 8" class="tag" :data-index="index" :class="{visible: selectedQuestion===index}" :key="'element'+index"/>
+        <element-tag v-for="(a, index) in 8" class="tag" :data-index="index"
+                     :correct="isTagCorrect(index)"
+                     :incorrect="isTagIncorrect(index)"
+                     :class="{visible: selectedQuestion===index}" :key="'element'+index"/>
 
         <quiz3-navigator :items="pageAnswers" :selected="selectedQuestion"/>
 
@@ -53,15 +50,8 @@ import Quiz3Navigator from '@js/gui/components/Quiz3Navigator.vue';
 import TextLV from "@json/quiz3-text-lv.json";
 import Quiz3FinalPage from "@js/gui/components/Quiz3FinalPage.vue";
 import ObjectRecognitionServiceInstance from '@js/Services/ObjectRecongnitionService.js';
-
-const CorrectAnswersIds = [1, 2, 3, 4, 5, 6, 7 ,8];
-
-const AnswerState = {
-    UNKNOWN: 0,
-    CURRENT: 1,
-    INCORRECT: 2,
-    CORRECT: 3
-};
+import {AnswerState} from "@js/Stuctures/Constants.js";
+import Config from "@json/config.json";
 
 export default {
     name: "Quiz3View",
@@ -96,7 +86,9 @@ export default {
                 AnswerState.UNKNOWN
             ],
             isFinalViewVisible: false,
-            resetTimeout: null
+            resetTimeout: null,
+            tagState: [0, 0, 0, 0, 0, 0, 0, 0],
+            tagStateTimers: [null, null, null, null, null, null, null, null]
         };
     },
     watch: {
@@ -105,7 +97,7 @@ export default {
                 return;
             }
 
-            if (CorrectAnswersIds[this.selectedQuestion] === id) {
+            if (Config.quiz3.correctAnswerIds[this.selectedQuestion] === id) {
                 this.selectedCorrectAnswer();
             } else {
                 if (!this.wrongAnswers.includes(id)) {
@@ -121,37 +113,32 @@ export default {
         }
     },
     methods: {
+        setTagAnswerState(index, state){
+            this.$set(this.tagState, index, state);
+            clearTimeout(this.tagStateTimers[index]);
+            if (state === AnswerState.CORRECT || state === AnswerState.INCORRECT) {
+                this.tagStateTimers[index] = setTimeout(() => {
+                    this.setTagAnswerState(index, AnswerState.UNKNOWN);
+                }, 2000);
+            }
+        },
+        isTagCorrect(index) {
+            return this.tagState[index] === AnswerState.CORRECT;
+        },
+        isTagIncorrect(index) {
+            return this.tagState[index] === AnswerState.INCORRECT;
+        },
         selectedCorrectAnswer() {
+            this.setTagAnswerState(this.selectedQuestion, AnswerState.CORRECT);
             this.isCorrectAnswer = true;
             this.continueNextDelayed();
         },
         selectedWrongAnswer() {
+            this.setTagAnswerState(this.selectedQuestion, AnswerState.INCORRECT);
             this.numberOfIncorrectAnswers++;
             if (this.numberOfIncorrectAnswers > 2) {
                 this.continueNextDelayed();
             }
-        },
-        iconClass(state, index) {
-            const classes = [];
-            if (this.selectedQuestion === index) {
-                classes.push('selected');
-            }
-            if (state === AnswerState.CORRECT) {
-                classes.push('correct');
-            }
-            if (state === AnswerState.INCORRECT) {
-                classes.push('incorrect');
-            }
-            return classes;
-        },
-        iconText(state, index) {
-            if (state === AnswerState.CORRECT) {
-                return this.text[index].answer;
-            }
-            if (index < this.selectedQuestion) {
-                return '?';
-            }
-            return '';
         },
         pageClass(i) {
             if (i < this.selectedQuestion) {
@@ -163,9 +150,6 @@ export default {
             if (i > this.selectedQuestion) {
                 return 'page-in';
             }
-        },
-        objectPointTransform(detectedPosition) {
-            return 'transform:translate(' + detectedPosition.x + 'px,' + detectedPosition.y + 'px)';
         },
         checkAnswer(result) {
             this.answerId = result.id;

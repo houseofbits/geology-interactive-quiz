@@ -40,19 +40,11 @@
 
 <script>
 
+import {AnswerState} from "@js/Stuctures/Constants.js";
 import DetectionFeature from "@js/Stuctures/DetectionFeature";
 import ElementTag from "./components/ElementTag.vue";
 import ObjectRecognitionServiceInstance from '@js/Services/ObjectRecongnitionService.js';
-
-const CorrectAnswerAId = 8;
-const CorrectAnswerBId = 7;
-const CorrectAnswerCId = 2;
-
-const AnswerState = {
-    UNKNOWN: 0,
-    INCORRECT: 1,
-    CORRECT: 2
-};
+import Config from "@json/config.json";
 
 export default {
     name: "Quiz1View",
@@ -106,19 +98,19 @@ export default {
             if (result.regionId === 1) {
                 this.$set(this.answerState,
                     0,
-                    (result.id === CorrectAnswerAId) ? AnswerState.CORRECT : AnswerState.INCORRECT
+                    (result.id === Config.quiz1.AAnswerId) ? AnswerState.CORRECT : AnswerState.INCORRECT
                 );
             }
             if (result.regionId === 2) {
                 this.$set(this.answerState,
                     1,
-                    (result.id === CorrectAnswerBId) ? AnswerState.CORRECT : AnswerState.INCORRECT
+                    (result.id === Config.quiz1.BAnswerId) ? AnswerState.CORRECT : AnswerState.INCORRECT
                 );
             }
             if (result.regionId === 3) {
                 this.$set(this.answerState,
                     2,
-                    (result.id === CorrectAnswerCId) ? AnswerState.CORRECT : AnswerState.INCORRECT
+                    (result.id === Config.quiz1.CAnswerId) ? AnswerState.CORRECT : AnswerState.INCORRECT
                 );
             }
             this.updateResetTimer();

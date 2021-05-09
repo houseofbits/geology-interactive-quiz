@@ -4,6 +4,7 @@ import ObjectDetectionResult from "@js/Stuctures/ObjectDetectionResult";
 import DetectedObject from "@js/Stuctures/DetectedObject";
 import ObjectDefinition from "@js/Stuctures/ObjectDefinition";
 import ObjectDetectionResult2 from "@js/Stuctures/ObjectDetectionResult2";
+import Config from "@json/config.json";
 
 export const NEGATIVE_OVERLAP_THRESHOLD = 80.0;    //Threshold value to consider two different objects as conflicting
 export const POSITIVE_OVERLAP_THRESHOLD = 160.0;   //Threshold value to consider two objects of same type as equal
@@ -12,18 +13,19 @@ export const FITTEST_OVERLAPPING_WEIGHT_FACTOR = 1.0;   //Factors to define fitt
 export const FITTEST_OVERLAPPING_DISTANCE_FACTOR = 1.0; //totalWeight = weightFactor * weight + distanceFactor * distanceWeight
 export const OBJECT_TIME_TO_LIVE = 500;    //Maximum age of object, without any touches
 export const REDUCE_DANGLING_TTL = 0.1;
-export const DEFAULT_ERROR = 5.0;   //5.0;
 
-const ObjectDefinitionParams = [
-    {id: 1, a:63.8, b:53.8, c:97.4, err:DEFAULT_ERROR},
-    {id: 2, a:63.8, b:67.2, c:84.0, err:DEFAULT_ERROR},
-    {id: 3, a:63.8, b:84.0, c:90.7, err:DEFAULT_ERROR},
-    {id: 4, a:63.8, b:97.4, c:100.8, err:DEFAULT_ERROR},
-    {id: 5, a:63.84, b:53.76, c:67.2, err:DEFAULT_ERROR},
-    {id: 6, a:53.76, b:67.2, c:84.0, err:DEFAULT_ERROR},
-    {id: 7, a:53.76, b:84.0, c:94.08, err:DEFAULT_ERROR},
-    {id: 8, a:53.76, b:97.44, c:104.16, err:DEFAULT_ERROR}
-];
+//export const DEFAULT_ERROR = 5.0;   //5.0;
+
+// const ObjectDefinitionParams = [
+//     {id: 1, a:63.8, b:53.8, c:97.4, err:DEFAULT_ERROR},
+//     {id: 2, a:63.8, b:67.2, c:84.0, err:DEFAULT_ERROR},
+//     {id: 3, a:63.8, b:84.0, c:90.7, err:DEFAULT_ERROR},
+//     {id: 4, a:63.8, b:97.4, c:100.8, err:DEFAULT_ERROR},
+//     {id: 5, a:63.84, b:53.76, c:67.2, err:DEFAULT_ERROR},
+//     {id: 6, a:53.76, b:67.2, c:84.0, err:DEFAULT_ERROR},
+//     {id: 7, a:53.76, b:84.0, c:94.08, err:DEFAULT_ERROR},
+//     {id: 8, a:53.76, b:97.44, c:104.16, err:DEFAULT_ERROR}
+// ];
 
 export default class ObjectDetectionService {
     /**
@@ -378,7 +380,7 @@ export default class ObjectDetectionService {
      * @returns {Array}
      */
     getObjectDefinitions() {
-        return ObjectDefinitionParams.map(param => this.createObjectDefinition(param.id, param.a, param.b, param.c, param.err));
+        return Config.objectDefinitions.map(param => this.createObjectDefinition(param.id, param.a, param.b, param.c, Config.defaultError));
     }
 
     /**
