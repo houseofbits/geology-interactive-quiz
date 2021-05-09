@@ -30,12 +30,24 @@ export default {
             required: true
         }
     },
+    data() {
+        return {
+            timer: null
+        };
+    },
+    watch: {
+        isOpen(val) {
+            clearTimeout(this.timer);
+            if (val) {
+                this.timer = setTimeout(this.close, 60000);
+            }
+        }
+    },
     methods: {
         open() {
             this.$emit('click', this.index);
         },
         close() {
-
             this.$emit('close');
         }
     }

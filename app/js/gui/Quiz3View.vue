@@ -269,12 +269,14 @@ export default {
         font-size: 50px;
         line-height: 80px;
         text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-        background: linear-gradient(to bottom, rgba(255, 183, 107, 1) 0%, rgba(255, 167, 61, 1) 55%, rgba(255, 124, 0, 1) 87%, rgba(255, 127, 4, 1) 100%);
+        //background: linear-gradient(to bottom, rgba(255, 183, 107, 1) 0%, rgba(255, 167, 61, 1) 55%, rgba(255, 124, 0, 1) 87%, rgba(255, 127, 4, 1) 100%);
+        background: linear-gradient(to bottom, rgba(28,214,0,1) 0%,rgba(5,109,0,1) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
         opacity: 0.0;
         transform: scale(0.2);
         transition: all linear 500ms;
+        font-weight: bold;
 
         &.visible {
             opacity: 1.0;
