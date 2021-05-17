@@ -1,9 +1,9 @@
 <template>
     <div class="frame" :class="{visible: selected}">
-        <span class="title" :class="{inactive: isHint1Visible}">{{ title }}</span>
-        <div class="hint1" :class="{active: isHint1Visible, inactive: isHint2Visible}">{{ hint1 }}</div>
-        <div class="hint2" :class="{active: isHint2Visible}">{{ hint2 }}</div>
-<!--        <div class="active-area"></div>-->
+        <span class="title" :class="{inactive: isHint1Visible || isCorrectAnswer}">{{ title }}</span>
+        <div class="hint1" :class="{active: isHint1Visible, inactive: isHint2Visible || (isHint1Visible && isCorrectAnswer)}">{{ hint1 }}</div>
+        <div class="hint2" :class="{active: isHint2Visible, inactive: isHint2Visible && isCorrectAnswer}">{{ hint2 }}</div>
+        <div class="correct-answer" :class="{visible:isCorrectAnswer}">{{ answerTitle }}</div>
     </div>
 </template>
 
@@ -37,6 +37,10 @@ export default {
         },
         numberOfErrors: {
             type: Number,
+            required: true
+        },
+        answerTitle: {
+            type: String,
             required: true
         }
     },
@@ -146,26 +150,40 @@ export default {
             transform: scale(1.0);
             transition: all linear 350ms;
         }
+
+        &.inactive {
+            opacity: 0.4;
+            text-shadow: 0 6px 35px rgba(0,0,0,0.8);
+            transition: all linear 350ms;
+            top: 265px;
+        }
     }
 
-    .active-area {
+    .correct-answer {
         position: absolute;
-        left: 100px;
-        top:400px;
-        bottom: 150px;
-        right:100px;
-        border-radius: 60px;
-        color:white;
-        font-size: 25px;
+        display: inline-block;
+        width: 100%;
         text-align: center;
-        line-height: 200px;
-        background: repeating-linear-gradient(
-                45deg,
-                rgba(247, 160, 22, 0.51) 0,
-                rgba(255, 169, 0, 0.77) 20px,
-                rgba(255, 145, 0, 0) 20px,
-                rgba(255, 153, 62, 0) 40px
-        );
+        font-size: 48px;
+        font-weight: bold;
+        line-height: 48px;
+        top: 340px;
+        padding-left: 40px;
+        padding-right: 40px;
+        color: #414141;
+        text-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        transform: scale(0.1);
+        opacity: 0.0;
+        transition: all linear 50ms;
+        background: linear-gradient(to bottom, rgba(28,214,0,1) 0%,rgba(5,109,0,1) 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+
+        &.visible {
+            opacity: 1.0;
+            transform: scale(1.0);
+            transition: all linear 350ms;
+        }
     }
 }
 
