@@ -5,7 +5,7 @@
         "CAnswerId":6
     },
     "quiz2": {
-        "endpointUrl": "http://raspberry.pi:8888/set-port-pins",
+        "endpointUrl": "http://10.10.30.210:8888/set-port-pins",
         "columnPins": {
             "upper": [
                 3,
