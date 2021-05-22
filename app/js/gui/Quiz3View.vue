@@ -2,17 +2,17 @@
     <div class="view">
 
         <div class="reset-button" @click="reset">
-            <i class="fas fa-sync-alt"></i>
+            <i class="fas fa-sync-alt" @click="reset"></i>
         </div>
 
-        <div class="container m-0 p-0 test-buttons-overlay">
-            <div class="row debug m-0 p-0 pt-2 pl-2">
-                <button class="btn btn-sm btn-success m-1" type="button" @click="selectedCorrectAnswer">Rigth answer
-                </button>
-                <button class="btn btn-sm btn-danger m-1" type="button" @click="selectedWrongAnswer">Wrong answer
-                </button>
-            </div>
-        </div>
+<!--        <div class="container m-0 p-0 test-buttons-overlay">-->
+<!--            <div class="row debug m-0 p-0 pt-2 pl-2">-->
+<!--                <button class="btn btn-sm btn-success m-1" type="button" @click="selectedCorrectAnswer">Rigth answer-->
+<!--                </button>-->
+<!--                <button class="btn btn-sm btn-danger m-1" type="button" @click="selectedWrongAnswer">Wrong answer-->
+<!--                </button>-->
+<!--            </div>-->
+<!--        </div>-->
 
         <quiz-page
             v-for="(n, index) in 8"
@@ -25,6 +25,7 @@
             :number-of-errors="numberOfIncorrectAnswers"
             :class="pageClass(index)"
             :key="'page'+index"
+            :answer-title="text[index].answer"
         />
 
         <quiz3-final-page :selected="selectedQuestion===8" :page-answers="pageAnswers" :class="pageClass(8)"/>
@@ -296,7 +297,10 @@ export default {
 
         i {
             font-size: 50px;
-            color: black;
+            background: linear-gradient(to bottom, rgba(28,214,0,1) 0%,rgba(5,109,0,1) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         }
     }
 

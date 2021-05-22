@@ -3,7 +3,7 @@
         <div class="background"></div>
         <span class="main-title">Izvēlies pareizo iezi</span>
 
-        <div class="reset-button">
+        <div class="reset-button" @click="reset">
             <i class="fas fa-sync-alt" @click="reset"></i>
         </div>
 
@@ -205,7 +205,10 @@ export default {
         transition: all linear 500ms;
 
         .answer {
-            right: 20px;
+            right: 0;
+            background-color: rgba(57,130,53,0.68);
+            padding-left: 20px;
+            padding-right: 20px;
         }
 
         &.correct .answer {
@@ -224,7 +227,10 @@ export default {
         transition: all linear 500ms;
 
         .answer {
-            left: 20px;
+            left: 0;
+            background-color: rgba(57,130,53,0.68);
+            padding-left: 20px;
+            padding-right: 20px;
         }
 
         &.correct .answer {
@@ -243,7 +249,10 @@ export default {
         transition: all linear 500ms;
 
         .answer {
-            right: 20px;
+            right: 0;
+            background-color: rgba(57,130,53,0.68);
+            padding-left: 20px;
+            padding-right: 20px;
         }
 
         &.correct .answer {
@@ -283,7 +292,10 @@ export default {
 
         i {
             font-size: 50px;
-            color: black;
+            background: linear-gradient(to bottom, rgba(28,214,0,1) 0%,rgba(5,109,0,1) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         }
     }
 
