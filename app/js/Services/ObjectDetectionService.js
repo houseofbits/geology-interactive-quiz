@@ -376,11 +376,11 @@ export default class ObjectDetectionService {
         return detectedObjects;
     }
 
-    /**
-     * @returns {Array}
-     */
-    getObjectDefinitions() {
-        return Config.objectDefinitions.map(param => this.createObjectDefinition(param.id, param.a, param.b, param.c, Config.defaultError));
+    getObjectDefinitions(objectDefinitions) {
+        if (!objectDefinitions) {
+            return [];
+        }
+        return objectDefinitions.map(param => this.createObjectDefinition(param.id, param.a, param.b, param.c, Config.defaultError));
     }
 
     /**

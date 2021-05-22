@@ -112,6 +112,7 @@ export default {
             this.openIndex = index;
         },
         closeSlide() {
+            this.requestLightState(null);
             this.openIndex = null;
             this.answerIndex = null;
             ObjectRecognitionServiceInstance.resetDetector();
@@ -161,6 +162,8 @@ export default {
         window.addEventListener("contextmenu", function (e) {
             e.preventDefault();
         });
+
+        ObjectRecognitionServiceInstance.setObjectDefinitions(Config.objectDefinitions2);
 
         ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(0, 0, 0, 203, 350));
         ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(1, 203, 0, 407, 450));

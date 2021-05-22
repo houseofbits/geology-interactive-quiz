@@ -21,6 +21,10 @@ class ObjectRecognitionService {
         this.isDisabled = false;
     }
 
+    setObjectDefinitions(objectDefinitionConfig) {
+        this.objectDefinitionsArray = this.objectDetectionService.getObjectDefinitions(objectDefinitionConfig);
+    }
+
     addRegion(region) {
         this.regions.push(region);
     }

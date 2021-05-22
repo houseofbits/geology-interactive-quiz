@@ -225,6 +225,8 @@ export default {
 
         this.initPage();
 
+        ObjectRecognitionServiceInstance.setObjectDefinitions(Config.objectDefinitions3);
+
         ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(1, 100, 400, 920, 720));
         ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(2, 100, 400, 920, 720));
         ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(3, 100, 400, 920, 720));

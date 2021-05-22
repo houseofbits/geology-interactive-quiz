@@ -12,7 +12,7 @@
         <element-tag class="tag tag-3" :correct="isAnswerCCorrect" :incorrect="isAnswerCIncorrect"/>
 
         <div class="column1" :class="{correct: isAnswerACorrect, wrong: isAnswerAIncorrect}">
-            <div class="answer">OLIS</div>
+            <div class="answer">OĻI</div>
             <div class="question-text">Iezis veidojies
                 dēdēšanas procesā kalnu masīvu nogāzēs un kalnu upēs. Iežu
                 atlūzas ir noapaļotas.
@@ -128,6 +128,8 @@ export default {
         window.addEventListener("contextmenu", function (e) {
             e.preventDefault();
         });
+
+        ObjectRecognitionServiceInstance.setObjectDefinitions(Config.objectDefinitions1);
 
         ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(1, 680, 90, 1000, 300));
         ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(2, 15, 300, 330, 510));

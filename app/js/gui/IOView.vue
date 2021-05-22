@@ -57,7 +57,12 @@ const ColumnPins = {
         3,14,15,4,11
     ],
     lower: [
-        9,8,13,7,10
+                        7,
+                8,
+                13,
+                9,
+                10
+
     ]
 };
 
@@ -72,7 +77,12 @@ export default {
     computed: {
         lowerRowPins() {
             return [
-                9,8,13,7,10
+                7,
+                8,
+                13,
+                9,
+                10
+
             ];
         },
         upperRowPins() {

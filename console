@@ -3,25 +3,25 @@
 function rreboot() {
 
     echo "Reboot 10.10.30.211"
-    ssh lvdm@10.10.30.211 "sudo reboot"
+    ssh lvdm@10.10.30.211 "sudo -S reboot"
 
     echo "Reboot 10.10.30.212"
-    ssh lvdm@10.10.30.212 "sudo reboot"
+    ssh lvdm@10.10.30.212 "sudo -S reboot"
 
     echo "Reboot 10.10.30.213"
-    ssh lvdm@10.10.30.213 "sudo reboot"        
+    ssh lvdm@10.10.30.213 "sudo -S reboot"        
 }
 
 function rshutdown() {
 
-    echo "Reboot 10.10.30.211"
-    ssh lvdm@10.10.30.211 "sudo shutdown"
+    echo "Shutdown 10.10.30.211"
+    ssh lvdm@10.10.30.211 "sudo -S shutdown"
 
-    echo "Reboot 10.10.30.212"
-    ssh lvdm@10.10.30.212 "sudo shutdown"
+    echo "Shutdown 10.10.30.212"
+    ssh lvdm@10.10.30.212 "sudo -S shutdown"
 
-    echo "Reboot 10.10.30.213"
-    ssh lvdm@10.10.30.213 "sudo shutdown"        
+    echo "Shutdown 10.10.30.213"
+    ssh lvdm@10.10.30.213 "sudo -S shutdown"        
 }
 
 function deploy(){
