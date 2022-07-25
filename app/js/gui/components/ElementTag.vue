@@ -36,6 +36,7 @@ export default {
 
 <style lang="scss" scoped>
 .tag {
+    pointer-events: none;
     z-index: 1;
     position: absolute;
     width: 150px;

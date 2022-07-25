@@ -35,6 +35,21 @@
             </div>
         </div>
 
+        <div class="container offscreen">
+            <div class="row">
+                <div class="col-lg-6 text-center">
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(0,true)">Correct #1</button>
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(1,true)">Correct #2</button>
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(2,true)">Correct #3</button>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(0,false)">Wrong #1</button>
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(1,false)">Wrong #2</button>
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(2,false)">Wrong #3</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 </template>
 
@@ -82,6 +97,12 @@ export default {
         },
     },
     methods: {
+        setDebugState(index, state) {
+            this.$set(this.answerState,
+                index,
+                state ? AnswerState.CORRECT : AnswerState.INCORRECT
+            );
+        },
         reset() {
             this.$set(this.answerState, 0, AnswerState.UNKNOWN);
             this.$set(this.answerState, 1, AnswerState.UNKNOWN);
@@ -119,8 +140,10 @@ export default {
         onNewObjectDetected(result) {
             this.checkAnswer(result);
         },
-        onObjectRemoved(result) {   },
-        onObjectUpdated(result) {   }
+        onObjectRemoved(result) {
+        },
+        onObjectUpdated(result) {
+        }
     },
     mounted() {
 
@@ -153,7 +176,15 @@ export default {
     position: absolute;
     width: 1024px;
     height: 768px;
-    background: linear-gradient(to bottom, rgba(255, 255, 160, 1) 0%, rgba(255, 255, 255, 1) 72%);
+   // background: linear-gradient(to bottom, rgba(255, 255, 160, 1) 0%, rgba(255, 255, 255, 1) 72%);
+    background: white;
+
+    .offscreen {
+        position: absolute;
+        width: 1024px;
+        height: 500px;
+        top: 768px;
+    }
 
     .background {
         top: 0;
@@ -162,6 +193,7 @@ export default {
         width: 1024px;
         height: 768px;
         background-image: url('@images/q1-bg1.png');
+        opacity: 0.7;
     }
 
     .main-title {
@@ -175,16 +207,16 @@ export default {
         text-align: center;
         font-size: 50px;
         line-height: 80px;
-        text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        //text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         //background: linear-gradient(to bottom, rgba(255, 183, 107, 1) 0%, rgba(255, 167, 61, 1) 55%, rgba(255, 124, 0, 1) 87%, rgba(255, 127, 4, 1) 100%);
-        background: linear-gradient(to bottom, rgba(28,214,0,1) 0%,rgba(5,109,0,1) 100%);
+        background: linear-gradient(to bottom, rgba(28, 214, 0, 1) 0%, rgba(5, 109, 0, 1) 100%);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
     }
 
     .answer {
         position: absolute;
-        top:-45px;
+        top: -45px;
         font-size: 30px;
         font-weight: bold;
         text-shadow: 0 6px 20px rgba(0, 0, 0, 1);
@@ -200,13 +232,13 @@ export default {
         left: 0;
         width: 650px;
         height: 120px;
-        background-color: rgba(255,255,255,0.5);
+        background-color: rgba(255, 255, 255, 0.5);
         padding-left: 20px;
         transition: all linear 500ms;
 
         .answer {
             right: 0;
-            background-color: rgba(57,130,53,0.68);
+            background-color: rgba(57, 130, 53, 0.68);
             padding-left: 20px;
             padding-right: 20px;
         }
@@ -222,13 +254,13 @@ export default {
         right: 0;
         width: 650px;
         height: 120px;
-        background-color: rgba(255,255,255,0.5);
+        background-color: rgba(255, 255, 255, 0.5);
         padding-right: 20px;
         transition: all linear 500ms;
 
         .answer {
             left: 0;
-            background-color: rgba(57,130,53,0.68);
+            background-color: rgba(57, 130, 53, 0.68);
             padding-left: 20px;
             padding-right: 20px;
         }
@@ -244,13 +276,13 @@ export default {
         left: 0;
         width: 650px;
         height: 135px;
-        background-color: rgba(255,255,255,0.5);
+        background-color: rgba(255, 255, 255, 0.5);
         padding-left: 20px;
         transition: all linear 500ms;
 
         .answer {
             right: 0;
-            background-color: rgba(57,130,53,0.68);
+            background-color: rgba(57, 130, 53, 0.68);
             padding-left: 20px;
             padding-right: 20px;
         }
@@ -261,24 +293,24 @@ export default {
     }
 
     .correct {
-        background: linear-gradient(to bottom, rgba(57,130,53,0.68) 0%,rgba(158,221,0,0.56) 100%);
+        background: linear-gradient(to bottom, rgba(57, 130, 53, 0.68) 0%, rgba(158, 221, 0, 0.56) 100%);
         transform: scale(1.05);
         transition: all linear 500ms;
 
         .question-text {
             color: white;
-            text-shadow: 0 6px 20px rgba(0,0,0,0.7);
+            text-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
         }
     }
 
     .wrong {
-        background: linear-gradient(to bottom, rgba(211,4,4,0.64) 0%,rgba(255,48,25,0.65) 100%);
+        background: linear-gradient(to bottom, rgba(211, 4, 4, 0.64) 0%, rgba(255, 48, 25, 0.65) 100%);
         transform: scale(1.05);
         transition: all linear 500ms;
 
         .question-text {
             color: white;
-            text-shadow: 0 6px 20px rgba(0,0,0,0.7);
+            text-shadow: 0 6px 20px rgba(0, 0, 0, 0.7);
         }
     }
 
@@ -292,10 +324,10 @@ export default {
 
         i {
             font-size: 50px;
-            background: linear-gradient(to bottom, rgba(28,214,0,1) 0%,rgba(5,109,0,1) 100%);
+            background: linear-gradient(to bottom, rgba(28, 214, 0, 1) 0%, rgba(5, 109, 0, 1) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            //text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         }
     }
 
@@ -304,7 +336,7 @@ export default {
         color: #414141;
         font-size: 28px;
         line-height: 28px;
-        text-shadow: 0 6px 20px rgba(0,0,0,0.4);
+        text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
     }
 
 }

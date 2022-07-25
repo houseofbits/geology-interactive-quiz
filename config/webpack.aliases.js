@@ -7,6 +7,8 @@ module.exports = {
             '@js': path.resolve(__dirname, '../app/js'),
             '@images': path.resolve(__dirname, '../app/images'),
             '@json': path.resolve(__dirname, '../app/json'),
+            '@style': path.resolve(__dirname, '../app/style'),
+            '@fonts': path.resolve(__dirname, '../app/fonts'),
         }
     }
 };

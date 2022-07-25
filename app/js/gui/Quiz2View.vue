@@ -23,6 +23,27 @@
         </div>
 
         <div class="main-title" :class="{visible: !openIndex}">Atpazīsti vietas</div>
+
+        <div class="container offscreen">
+            <div class="row">
+                <div class="col-lg-6 text-center">
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(0,true)">Correct #1</button>
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(1,true)">Correct #2</button>
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(2,true)">Correct #3</button>
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(3,true)">Correct #4</button>
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(4,true)">Correct #5</button>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(0,false)">Wrong #1</button>
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(1,false)">Wrong #2</button>
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(2,false)">Wrong #3</button>
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(3,false)">Wrong #4</button>
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(4,false)">Wrong #5</button>
+                </div>
+            </div>
+        </div>
+
+
     </div>
 </template>
 
@@ -86,6 +107,14 @@ export default {
         },
     },
     methods: {
+        setDebugState(index, state) {
+            this.setTagAnswerState(index, state ? AnswerState.CORRECT : AnswerState.INCORRECT);
+            if(state){
+                this.answerIndex = index;
+            } else {
+                this.answerIndex = null;
+            }
+        },
         isTagCorrect(index) {
             return this.tagState[index].state === AnswerState.CORRECT;
         },
@@ -187,7 +216,15 @@ export default {
     position: absolute;
     width: 1024px;
     height: 768px;
-    background: linear-gradient(to bottom, rgba(255, 255, 160, 1) 0%, rgba(255, 255, 255, 1) 72%);
+    //background: linear-gradient(to bottom, rgba(255, 255, 160, 1) 0%, rgba(255, 255, 255, 1) 72%);
+    background: white;
+
+    .offscreen {
+        position: absolute;
+        width: 1024px;
+        height: 500px;
+        top: 768px;
+    }
 
     .main-title {
         display: inline-block;
@@ -201,7 +238,7 @@ export default {
         text-align: center;
         font-size: 65px;
         line-height: 80px;
-        text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        //text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         //background: linear-gradient(to bottom, rgba(255, 183, 107, 1) 0%, rgba(255, 167, 61, 1) 55%, rgba(255, 124, 0, 1) 87%, rgba(255, 127, 4, 1) 100%);
         background: linear-gradient(to bottom, rgba(28,214,0,1) 0%,rgba(5,109,0,1) 100%);
         -webkit-background-clip: text;

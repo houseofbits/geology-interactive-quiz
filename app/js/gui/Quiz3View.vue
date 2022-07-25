@@ -39,6 +39,17 @@
 
         <div class="main-title" :class="{visible:!isFinalViewVisible}">Pievieno pareizo nosaukumu</div>
 
+        <div class="container offscreen">
+            <div class="row">
+                <div class="col-lg-6 text-center">
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="selectedCorrectAnswer">Correct</button>
+                </div>
+                <div class="col-lg-6 text-center">
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="selectedWrongAnswer">Wrong</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 </template>
 
@@ -253,8 +264,16 @@ export default {
     position: absolute;
     width: 1024px;
     height: 768px;
-    overflow: hidden;
-    background: linear-gradient(to bottom, rgba(255, 255, 160, 1) 0%, rgba(255, 255, 255, 1) 72%);
+    //overflow: hidden;
+    //background: linear-gradient(to bottom, rgba(255, 255, 160, 1) 0%, rgba(255, 255, 255, 1) 72%);
+    background: white;
+
+    .offscreen {
+        position: absolute;
+        width: 1024px;
+        height: 500px;
+        top: 768px;
+    }
 
     .test-buttons-overlay {
         position: absolute;
@@ -271,7 +290,7 @@ export default {
         text-align: center;
         font-size: 50px;
         line-height: 80px;
-        text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        //text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         //background: linear-gradient(to bottom, rgba(255, 183, 107, 1) 0%, rgba(255, 167, 61, 1) 55%, rgba(255, 124, 0, 1) 87%, rgba(255, 127, 4, 1) 100%);
         background: linear-gradient(to bottom, rgba(28,214,0,1) 0%,rgba(5,109,0,1) 100%);
         -webkit-background-clip: text;
@@ -300,7 +319,7 @@ export default {
             background: linear-gradient(to bottom, rgba(28,214,0,1) 0%,rgba(5,109,0,1) 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            //text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         }
     }
 

@@ -10,9 +10,9 @@ module.exports = {
             chunkFilename: '[id].css'
         }),
         new VueLoaderPlugin(),
-        new webpack.ProvidePlugin({
-            $: "jquery",
-            jQuery: "jquery"
-        })
+        // new webpack.ProvidePlugin({
+        //     $: "jquery",
+        //     jQuery: "jquery"
+        // })
     ]
 };

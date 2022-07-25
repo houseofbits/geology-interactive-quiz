@@ -62,7 +62,8 @@ export default {
     left: 0;
     width: 1024px;
     height: 768px;
-    background: linear-gradient(to bottom, rgba(255, 255, 160, 1) 0%, rgba(255, 255, 255, 1) 72%);
+    //background: linear-gradient(to bottom, rgba(255, 255, 160, 1) 0%, rgba(255, 255, 255, 1) 72%);
+    background: white;
 
     .text {
         position: absolute;
