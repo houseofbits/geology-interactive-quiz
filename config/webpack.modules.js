@@ -7,7 +7,7 @@ module.exports = {
                 test: /\.(png|svg|jpg|gif|obj)$/,
                 type: 'asset/resource',
                 generator: {
-                    filename: 'images/[name].[ext]'
+                    filename: 'images/[name][ext]'
                 }
             },
             {
@@ -30,10 +30,10 @@ module.exports = {
                 ]
             },
             {
-                test: /\.ttf$/,
+                test: /\.(ttf|woff2)$/,
                 type: 'asset/resource',
                 generator: {
-                    filename: 'fonts/[name].[ext]'
+                    filename: 'fonts/[name][ext]'
                 }
             },
         ],

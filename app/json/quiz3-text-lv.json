@@ -1,7 +1,7 @@
 [
   {
-    "title": "Reljefa forma, kas mēdz veidoties upes grīvā - vietā, kur ūdens ieplūst ezerā vai jūrā.",
-    "hint1": "Upes straume, sasniedzot ezeru vai jūru, plaši izplatās un vairs nespēj pārvietot tālāk upes nestās nogulas.",
+    "title": "Reljefa forma, kas mēdz veidoties upes grīvā - vietā, kur </br>ūdens ieplūst ezerā vai jūrā.",
+    "hint1": "Upes straume, sasniedzot ezeru vai jūru, plaši izplatās un </br>vairs nespēj pārvietot tālāk upes nestās nogulas.",
     "hint2": "Atgādina grieķu alfabēta burtu „delta”, kuras konuss vērsts pret ūdenstilpni.",
     "answer": "Delta"
   },
@@ -14,7 +14,7 @@
   {
     "title": "Laikapstākļi, kuros nokrišņu daudzums pārsniedz iztvaikošanu.",
     "hint1": "Raksturīgs mērenai joslai un ekvatoriālai joslai.",
-    "hint2": "Ir uzkrājušās pret dēdēšanu stipri noturīgā minerāla - kvarca - smiltis.",
+    "hint2": "Ir uzkrājušās pret dēdēšanu stipri noturīgā </br>minerāla - kvarca - smiltis.",
     "answer": "Humīds klimats"
   },
   {
@@ -30,20 +30,20 @@
     "answer": "Fizikālā dēdēšana"
   },
   {
-    "title": "Process, kas raksturīgs mitrai tropu vai ekvatoriālai joslai ar humīdu (siltu un mitru) klimatu.",
-    "hint1": "Galvenie cēloņi ir ūdens, skābeklis un ogļskābā gāze, kuru ietekmē notiek vielu šķīšana un oksidēšanās.",
+    "title": "Process, kas raksturīgs mitrai tropu vai ekvatoriālai joslai </br>ar humīdu (siltu un mitru) klimatu.",
+    "hint1": "Galvenie cēloņi ir ūdens, skābeklis un ogļskābā gāze, </br>kuru ietekmē notiek vielu šķīšana un oksidēšanās.",
     "hint2": "Rezultātā veidojas jauni un videi atbilstošāki, stabilāki minerāli.",
     "answer": "Ķīmiskā dēdēšana"
   },
   {
-    "title": "Cita sastāva minerālu veidošanās no kalnu iežiem mitra klimata apstākļos.",
-    "hint1": "Vēja un upju nestais smalkais iežu materiāls veido plašus līdzenumus un ir atkārtoti pakļauts dēdēšanai.",
+    "title": "Cita sastāva minerālu veidošanās no kalnu iežiem </br>mitra klimata apstākļos.",
+    "hint1": "Vēja un upju nestais smalkais iežu materiāls veido plašus </br>līdzenumus un ir atkārtoti pakļauts dēdēšanai.",
     "hint2": "Nogulumi veido boksītu, kaolinītu, dzelzs, niķeļa un mangāna rūdu iegulas.",
     "answer": "Dēdējumgaroza"
   },
   {
     "title": "Kaolinīts, illīts, smektīts",
-    "hint1": "Kaolinīts veidojies humīda klimata apstākļos; uzbriešanas spēja ūdenī ir maza.",
+    "hint1": "Kaolinīts veidojies humīda klimata apstākļos; </br>uzbriešanas spēja ūdenī ir maza.",
     "hint2": "Illīts un smektīts ir veidojies arīda klimata apstākļos.",
     "answer": "Mālu minerāli"
   }

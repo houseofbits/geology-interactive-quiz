@@ -1,0 +1,344 @@
+import DetectedObject from "@js/Stuctures/DetectedObject";
+import PointDistance from "@js/Stuctures/PointDistance";
+import TouchRegister from "@js/Services/TouchRegister";
+import BasicDetectionResult from "@js/Stuctures/BasicDetectionResult";
+
+const DETECTION_TIME = 3000;
+const MIN_WEIGHT_THRESHOLD = 0.75;
+const TOTAL_WEIGHT_THRESHOLD = 0.8;
+const MEAN_THRESHOLD = 0.25;
+const COUNT_FACTOR = 0.0;
+const WEIGHT_FACTOR = 1.0;
+
+export default class RegionDetectionService {
+
+    constructor() {
+        this.touch = new TouchRegister();
+
+        /** @type {ObjectDefinition[]} */
+        this.featureDefinitions = [];
+
+        /** @type {BasicDetectionResult[]} */
+        this.detectedObjects = [];
+
+        this.detectorLoopIntervalId = null;
+        this.detectionTimer = null;
+        this.detectStartHandler = null;
+        this.detectedObjectHandler = null;
+        this.detectEndHandler = null;
+    }
+
+    beginDetection() {
+        this.detectedObjects = [];
+        clearTimeout(this.detectionTimer);
+        this.detectionTimer = setTimeout(this.processDetectedObjects.bind(this), DETECTION_TIME);
+        if (this.detectStartHandler) {
+            this.detectStartHandler();
+        }
+        console.log('Begin');
+    }
+
+    finishDetection() {
+        this.detectedObjects = [];
+        clearTimeout(this.detectionTimer);
+        this.detectionTimer = null;
+    }
+
+    failedDetection() {
+        this.finishDetection();
+
+        if (this.detectEndHandler) {
+            this.detectEndHandler();
+        }
+        console.log('Failed');
+    }
+
+    runDetectionLoop() {
+        clearTimeout(this.detectorLoopIntervalId);
+        this.detectorLoopIntervalId = setTimeout(() => {
+            const detectedObjects = this.detectObjects();
+            this.persistObjects(detectedObjects);
+            this.runDetectionLoop();
+        }, 16);
+    }
+
+    /**
+     * @param {BasicDetectionResult[]} detectedObjects
+     */
+    persistObjects(detectedObjects) {
+
+        if (!this.detectionTimer && detectedObjects.length > 0) {
+            this.beginDetection();
+        }
+
+        if (this.detectionTimer) {
+            this.detectedObjects = this.detectedObjects.concat(detectedObjects);
+        }
+    }
+
+    processDetectedObjects() {
+
+        let isMeanValueThresholdFail = false;
+
+        if (this.detectedObjects.length > 0) {
+            let detectedObjectIds = this.getDetectedIds(this.detectedObjects);
+            const totalCount = this.detectedObjects.length;
+            let weighted = [];
+            for (const detectedObjectId of detectedObjectIds) {
+                const objects = this.detectedObjects.filter((object) => object.defId === detectedObjectId);
+                if (objects.length) {
+                    const obj = this.createObject(totalCount, detectedObjectId, objects);
+                    if (this.doThresholdPass(obj)) {
+                        weighted.push(obj);
+                    }
+                    //console.log(obj);
+                }
+            }
+
+            weighted = weighted.sort((a, b) => {
+                if (a.totalWeight > b.totalWeight) return -1;
+                if (a.totalWeight < b.totalWeight) return 1;
+                return 0;
+            });
+
+            console.log(weighted);
+
+            if (typeof weighted[0] !== "undefined") {
+
+                const matchingWeight = weighted[0];
+                const secondMatchingWeight = weighted[1] ?? null;
+
+                if (secondMatchingWeight) {
+                    const diffTotalWeight = Math.abs(secondMatchingWeight.totalWeight - matchingWeight.totalWeight);
+                    //console.log(diffTotalWeight);
+
+                    if (diffTotalWeight < 0.07 && matchingWeight.matchingWeight < 0.9) {
+                        this.failedDetection();
+                        return;
+                    }
+                }
+
+                if (this.detectedObjectHandler) {
+                    this.detectedObjectHandler(matchingWeight.id);
+                }
+
+                console.log('Detected ' + matchingWeight.id);
+
+                this.finishDetection();
+                return;
+            }
+        }
+
+        //Handler when no objects are found
+        this.failedDetection();
+    }
+
+    createObject(totalCount, detectedObjectId, objects) {
+        let weight = this.getTotalWeight(objects);
+        let minWeight = this.getMinWeight(objects);
+        let maxWeight = this.getMaxWeight(objects);
+
+        let meanWeight = maxWeight - minWeight;
+        let count = objects.length;
+
+        const matchingWeight = weight / count;
+        const countWeight = count / totalCount;
+        const totalWeight = maxWeight;
+            // COUNT_FACTOR * countWeight
+            // + WEIGHT_FACTOR * matchingWeight;
+
+        return {
+            id: detectedObjectId,
+            matchingWeight: matchingWeight.toFixed(3),
+            countWeight: countWeight.toFixed(3),
+            totalWeight: totalWeight.toFixed(3),
+            minWeight: minWeight.toFixed(3),
+            maxWeight: maxWeight.toFixed(3),
+            meanWeight: meanWeight.toFixed(3),
+            count: totalCount
+        };
+    }
+
+    doThresholdPass(matchingWeight) {
+        if (matchingWeight.totalWeight < TOTAL_WEIGHT_THRESHOLD) {
+            return false;
+        }
+        // if (matchingWeight.minWeight < MIN_WEIGHT_THRESHOLD) {
+        //     return false;
+        // }
+        // if (matchingWeight.meanWeight > MEAN_THRESHOLD) {
+        //     return false;
+        // }
+
+        return true;
+    }
+
+    /**
+     * @param {BasicDetectionResult[]} objects
+     * @returns {number[]}
+     */
+    getDetectedIds(objects) {
+        let detectedObjectIds = this.detectedObjects.map((item) => item.defId);
+        detectedObjectIds = [...new Set(detectedObjectIds)];
+
+        return detectedObjectIds;
+    }
+
+    /**
+     * @param {BasicDetectionResult[]} objects
+     * @returns {number}
+     */
+    getTotalWeight(objects) {
+        let weight = 0;
+        for (const object of objects) {
+            weight += object.weight;
+        }
+
+        return weight;
+    }
+
+    /**
+     * @param {BasicDetectionResult[]} objects
+     * @returns {number}
+     */
+    getMinWeight(objects) {
+        let weight = 1.0;
+        for (const object of objects) {
+            if (object.weight < weight) {
+                weight = object.weight;
+            }
+        }
+
+        return weight;
+    }
+
+    /**
+     * @param {BasicDetectionResult[]} objects
+     * @returns {number}
+     */
+    getMaxWeight(objects) {
+        let weight = 0.0;
+        for (const object of objects) {
+            if (object.weight > weight) {
+                weight = object.weight;
+            }
+        }
+
+        return weight;
+    }
+
+    /**
+     * @returns {BasicDetectionResult[]}
+     */
+    detectObjects() {
+        const pointDistances = this.calculatePointDistances(this.touch.touches);
+        let objects = [];
+        for (const def of this.featureDefinitions) {
+            const result = this.findFeatureInDistanceList(def, pointDistances);
+            if (result.length > 0) {
+                objects = objects.concat(result);
+            }
+        }
+        return objects;
+    }
+
+    /**
+     * @param {ObjectDefinition} feature
+     * @param {PointDistance[]} pointDist
+     * @returns {BasicDetectionResult[]}
+     */
+    findFeatureInDistanceList(feature, pointDist) {
+        const detectedResults = [];
+        for (let i = 0; i < pointDist.length; i++) {
+            //Candidate A
+            if (feature.matchSegmentLength(0, pointDist[i].distance)) {
+                for (let j = 0; j < pointDist.length; j++) {
+                    //Candidate B
+                    if (i !== j && feature.matchSegmentLength(1, pointDist[j].distance)) {
+                        for (let k = 0; k < pointDist.length; k++) {
+                            if (i !== j && i !== k && j !== k && feature.matchSegmentLength(2, pointDist[k].distance)) {
+                                const indices = this.getIndices(i, j, k, pointDist);
+                                if (indices) {
+                                    detectedResults.push(
+                                        new BasicDetectionResult(feature.id, this.calculateWeight(pointDist, i, j, k, feature))
+                                    );
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return detectedResults;
+    }
+
+    /**
+     * @param {TouchPoint[]} touchPoints
+     * @returns {PointDistance[]}
+     */
+    calculatePointDistances(touchPoints) {
+        const pointDist = [];
+        for (let i = 0; i < touchPoints.length; i++) {
+            for (let j = i; j < touchPoints.length; j++) {
+                if (i !== j) {
+                    const _x = touchPoints[j].x - touchPoints[i].x;
+                    const _y = touchPoints[j].y - touchPoints[i].y;
+                    const _lsq = _x * _x + _y * _y;
+                    pointDist.push(new PointDistance(i, j, Math.sqrt(_lsq)));
+                }
+            }
+        }
+        return pointDist;
+    }
+
+    /**
+     * @param {ObjectDetectionResult} detectionResult
+     * @param {TouchPoint[]} touchPoints
+     * @returns {DetectedObject}
+     */
+    getDetectedPosition(detectionResult, touchPoints) {
+
+        let x = touchPoints[detectionResult.i].x + touchPoints[detectionResult.j].x + touchPoints[detectionResult.k].x;
+        let y = touchPoints[detectionResult.i].y + touchPoints[detectionResult.j].y + touchPoints[detectionResult.k].y;
+
+        return new DetectedObject(detectionResult, x / 3, y / 3);
+    }
+
+
+    /**
+     * @param {Number} i
+     * @param {Number} j
+     * @param {Number} k
+     * @param {PointDistance[]} pointDist
+     * @returns {?Number[]}
+     */
+    getIndices(i, j, k, pointDist) {
+        let pointIndexes = new Set();
+        pointIndexes.add(pointDist[i].indexA);
+        pointIndexes.add(pointDist[i].indexB);
+        pointIndexes.add(pointDist[j].indexA);
+        pointIndexes.add(pointDist[j].indexB);
+        pointIndexes.add(pointDist[k].indexA);
+        pointIndexes.add(pointDist[k].indexB);
+        return pointIndexes.size === 3 ? Array.from(pointIndexes) : null;
+    }
+
+    /**
+     *
+     * @param {PointDistance[]} pointDist
+     * @param {Number} i
+     * @param {Number} j
+     * @param {Number} k
+     * @param {ObjectDefinition} objectDef
+     * @returns {Number}
+     */
+    calculateWeight(pointDist, i, j, k, objectDef) {
+        let weight = 0.0;
+
+        weight += objectDef.calculateWeight(0, pointDist[i].distance);
+        weight += objectDef.calculateWeight(1, pointDist[j].distance);
+        weight += objectDef.calculateWeight(2, pointDist[k].distance);
+
+        return weight / 3.0;
+    }
+}

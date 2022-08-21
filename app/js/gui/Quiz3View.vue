@@ -1,19 +1,6 @@
 <template>
     <div class="view">
 
-        <div class="reset-button" @click="reset">
-            <i class="fas fa-sync-alt" @click="reset"></i>
-        </div>
-
-<!--        <div class="container m-0 p-0 test-buttons-overlay">-->
-<!--            <div class="row debug m-0 p-0 pt-2 pl-2">-->
-<!--                <button class="btn btn-sm btn-success m-1" type="button" @click="selectedCorrectAnswer">Rigth answer-->
-<!--                </button>-->
-<!--                <button class="btn btn-sm btn-danger m-1" type="button" @click="selectedWrongAnswer">Wrong answer-->
-<!--                </button>-->
-<!--            </div>-->
-<!--        </div>-->
-
         <quiz-page
             v-for="(n, index) in 8"
             :finished="isPageFinished"
@@ -30,19 +17,44 @@
 
         <quiz3-final-page :selected="selectedQuestion===8" :page-answers="pageAnswers" :class="pageClass(8)"/>
 
-        <element-tag v-for="(a, index) in 8" class="tag" :data-index="index"
-                     :correct="isTagCorrect(index)"
-                     :incorrect="isTagIncorrect(index)"
-                     :class="{visible: selectedQuestion===index}" :key="'element'+index"/>
+        <detector v-for="(a, index) in 8"
+                  :class="{visible: selectedQuestion===index}"
+                  :position-x="tagPositions[index]" :position-y="480" :definitions="featureDefinitions"
+                  :correct-answer="1"
+                  :state="pageAnswers[index]" @detected="setAnswer" @failed="failedDetection"/>
 
         <quiz3-navigator :items="pageAnswers" :selected="selectedQuestion"/>
 
-        <div class="main-title" :class="{visible:!isFinalViewVisible}">Pievieno pareizo nosaukumu</div>
+        <div class="main-title">
+            <span v-if="selectedQuestion!==8">Pievieno pareizo nosaukumu</span>
+
+            <div v-if="selectedQuestion!==8">
+                <div v-if="hasDetectionError" class="detector-info">
+                    <div class="icon hand-icon-2"></div>
+                    <div class="text">
+                        Neizdevās atpazīt elementu. Mēģini vēlreiz novietojot elementu precīzi sarkanajā aplī.
+                    </div>
+                </div>
+                <div v-else class="detector-info">
+                    <div class="icon hand-icon-1"></div>
+                    <div class="text">Novieto atbilstošo elementu sarkanajā aplī. Turi to vismaz 2 sekundes, kamēr
+                        notiek
+                        atpazīšana.
+                    </div>
+                </div>
+            </div>
+
+            <div class="reset-button" @click="reset">
+                <span>No sākuma</span>
+                <i class="fas fa-sync-alt"></i>
+            </div>
+        </div>
 
         <div class="container offscreen">
             <div class="row">
                 <div class="col-lg-6 text-center">
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="selectedCorrectAnswer">Correct</button>
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="selectedCorrectAnswer">Correct
+                    </button>
                 </div>
                 <div class="col-lg-6 text-center">
                     <button class="btn btn-lg btn-danger mt-2 btn-block" @click="selectedWrongAnswer">Wrong</button>
@@ -64,6 +76,8 @@ import Quiz3FinalPage from "@js/gui/components/Quiz3FinalPage.vue";
 import ObjectRecognitionServiceInstance from '@js/Services/ObjectRecongnitionService.js';
 import {AnswerState} from "@js/Stuctures/Constants.js";
 import Config from "@json/config.json";
+import Detector from "@js/gui/components/Detector.vue";
+import FeatureDefinitionBuilder from "@js/Services/FeatureDefinitionBuilder";
 
 export default {
     name: "Quiz3View",
@@ -71,10 +85,12 @@ export default {
         Quiz3FinalPage,
         QuizPage,
         Quiz3Navigator,
-        ElementTag
+        ElementTag,
+        Detector
     },
     data() {
         return {
+            featureDefinitions: FeatureDefinitionBuilder.buildDefinitionsFromConfiguration(Config.objectDefinitions3, 15),
             isDisabled: true,
             touches: [],
             detectedObjects: [],
@@ -88,19 +104,22 @@ export default {
             wrongAnswers: [],
             isPageFinished: false,
             pageAnswers: [
-                AnswerState.UNKNOWN,
-                AnswerState.UNKNOWN,
-                AnswerState.UNKNOWN,
-                AnswerState.UNKNOWN,
-                AnswerState.UNKNOWN,
-                AnswerState.UNKNOWN,
-                AnswerState.UNKNOWN,
-                AnswerState.UNKNOWN
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null
             ],
             isFinalViewVisible: false,
             resetTimeout: null,
             tagState: [0, 0, 0, 0, 0, 0, 0, 0],
-            tagStateTimers: [null, null, null, null, null, null, null, null]
+            tagPositions: [87, 187, 287, 387, 487, 587, 687, 787],
+            tagStateTimers: [null, null, null, null, null, null, null, null],
+            hasDetectionError: false,
+            detectionErrorTimeout: null,
         };
     },
     watch: {
@@ -125,7 +144,7 @@ export default {
         }
     },
     methods: {
-        setTagAnswerState(index, state){
+        setTagAnswerState(index, state) {
             this.$set(this.tagState, index, state);
             clearTimeout(this.tagStateTimers[index]);
             if (state === AnswerState.CORRECT || state === AnswerState.INCORRECT) {
@@ -163,7 +182,7 @@ export default {
                 return 'page-in';
             }
         },
-        checkAnswer(result) {
+        setAnswer(result) {
             this.answerId = result.id;
         },
         resetDetector() {
@@ -222,11 +241,18 @@ export default {
             clearTimeout(this.resetTimeout);
             this.resetTimeout = setTimeout(this.reset, 60000);
         },
-        onNewObjectDetected(result) {
-            this.checkAnswer(result);
+        failedDetection() {
+            this.hasDetectionError = true;
+            clearTimeout(this.detectionErrorTimeout);
+            this.detectionErrorTimeout = setTimeout(() => this.hasDetectionError = false, 5000);
         },
-        onObjectRemoved(result) {   },
-        onObjectUpdated(result) {   }
+        // onNewObjectDetected(result) {
+        //     this.checkAnswer(result);
+        // },
+        // onObjectRemoved(result) {
+        // },
+        // onObjectUpdated(result) {
+        // }
     },
     mounted() {
 
@@ -237,22 +263,22 @@ export default {
 
         this.initPage();
 
-        ObjectRecognitionServiceInstance.setObjectDefinitions(Config.objectDefinitions3);
-
-        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(1, 100, 400, 920, 720));
-        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(2, 100, 400, 920, 720));
-        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(3, 100, 400, 920, 720));
-        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(4, 100, 400, 920, 720));
-        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(5, 100, 400, 920, 720));
-        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(6, 100, 400, 920, 720));
-        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(7, 100, 400, 920, 720));
-        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(8, 100, 400, 920, 720));
-
-        ObjectRecognitionServiceInstance.detectedHandler = this.onObjectUpdated;
-        ObjectRecognitionServiceInstance.detectedNewHandler = this.onNewObjectDetected;
-        ObjectRecognitionServiceInstance.detectedLostHandler = this.onObjectRemoved;
-
-        ObjectRecognitionServiceInstance.runDetectionLoop();
+        // ObjectRecognitionServiceInstance.setObjectDefinitions(Config.objectDefinitions3);
+        //
+        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(1, 100, 400, 920, 720));
+        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(2, 100, 400, 920, 720));
+        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(3, 100, 400, 920, 720));
+        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(4, 100, 400, 920, 720));
+        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(5, 100, 400, 920, 720));
+        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(6, 100, 400, 920, 720));
+        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(7, 100, 400, 920, 720));
+        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(8, 100, 400, 920, 720));
+        //
+        // ObjectRecognitionServiceInstance.detectedHandler = this.onObjectUpdated;
+        // ObjectRecognitionServiceInstance.detectedNewHandler = this.onNewObjectDetected;
+        // ObjectRecognitionServiceInstance.detectedLostHandler = this.onObjectRemoved;
+        //
+        // ObjectRecognitionServiceInstance.runDetectionLoop();
 
     }
 }
@@ -284,42 +310,75 @@ export default {
         display: inline-block;
         color: gray;
         position: absolute;
+        font-weight: bold;
         width: 1024px;
         left: 0;
-        height: 80px;
+        height: 120px;
         text-align: center;
-        font-size: 50px;
+        font-size: 38px;
         line-height: 80px;
-        //text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-        //background: linear-gradient(to bottom, rgba(255, 183, 107, 1) 0%, rgba(255, 167, 61, 1) 55%, rgba(255, 124, 0, 1) 87%, rgba(255, 127, 4, 1) 100%);
-        background: linear-gradient(to bottom, rgba(28,214,0,1) 0%,rgba(5,109,0,1) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        opacity: 0.0;
-        transform: scale(0.2);
+        background-color: white;
+        color: #606060;
+        //opacity: 0;
         transition: all linear 500ms;
-        font-weight: bold;
 
-        &.visible {
-            opacity: 1.0;
-            transform: scale(1.0);
+        //&.visible {
+        //    opacity: 1.0;
+        //    transform: scale(1.0);
+        //}
+    }
+
+    .detector-info {
+        display: flex;
+        align-content: flex-end;
+        justify-content: center;
+        flex-direction: row;
+        align-items: flex-end;
+        position: absolute;
+        top: 35px;
+        left: 0;
+        right: 0;
+        padding: 6px;
+
+        & .icon {
+            width: 70px;
+            height: 70px;
+            margin-right: 8px;
+            background-size: cover;
+
+            &.hand-icon-1 {
+                background-image: url('@images/hand-icon-1.png');
+            }
+
+            &.hand-icon-2 {
+                background-image: url('@images/hand-icon-2.png');
+            }
+        }
+
+        & .text {
+            font-size: 18px;
+            font-weight: normal;
         }
     }
 
     .reset-button {
         position: absolute;
-        right: 10px;
+        right: 20px;
         top: 20px;
-        width: 60px;
-        height: 60px;
+        width: auto;
+        height: 32px;
         z-index: 50;
+        display: flex;
+        align-items: center;
 
         i {
-            font-size: 50px;
-            background: linear-gradient(to bottom, rgba(28,214,0,1) 0%,rgba(5,109,0,1) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            //text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            font-size: 32px;
+            color: #606060;
+        }
+
+        span {
+            font-size: 18px;
+            margin-right: 8px;
         }
     }
 

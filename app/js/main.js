@@ -5,11 +5,13 @@ import VueRouter from 'vue-router'
 import MainApp from './MainApp.vue';
 import IndexView from './gui/IndexView.vue';
 import DetectorView from './gui/DetectorView.vue';
+import DetectorV2View from './gui/DetectorV2View.vue';
 import Quiz1View from './gui/Quiz1View.vue';
 import Quiz2View from './gui/Quiz2View.vue';
 import Quiz3View from './gui/Quiz3View.vue';
 import IOView from './gui/IOView.vue';
 import fontawesome from '@fortawesome/fontawesome-free/css/all.css';
+import MultiTouchView from "./gui/MultiTouchView.vue";
 
 Vue.use(VueRouter);
 
@@ -26,6 +28,11 @@ const router = new VueRouter({
             path: "/detector",
             name: "DetectorView",
             component: DetectorView,
+        },
+        {
+            path: "/detector2",
+            name: "DetectorV2View",
+            component: DetectorV2View,
         },
         {
             path: "/quiz1",
@@ -46,6 +53,11 @@ const router = new VueRouter({
             path: "/io",
             name: "IOView",
             component: IOView,
+        },
+        {
+            path: "/touch",
+            name: "Touch",
+            component: MultiTouchView,
         },
     ]
 });

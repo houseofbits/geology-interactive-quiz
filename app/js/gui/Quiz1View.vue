@@ -1,17 +1,38 @@
 <template>
     <div class="screen">
         <div class="background"></div>
-        <span class="main-title">Izvēlies pareizo iezi</span>
+        <div class="main-title">
+            <span>Izvēlies pareizo iezi</span>
 
-        <div class="reset-button" @click="reset">
-            <i class="fas fa-sync-alt" @click="reset"></i>
+            <div v-if="hasDetectionError" class="detector-info">
+                <div class="icon hand-icon-2"></div>
+                <div class="text">
+                    Neizdevās atpazīt elementu. Mēģini vēlreiz novietojot elementu precīzi sarkanajā aplī.
+                </div>
+            </div>
+            <div v-else class="detector-info">
+                <div class="icon hand-icon-1"></div>
+                <div class="text">Novieto atbilstošo elementu sarkanajā aplī. Turi to vismaz 2 sekundes, kamēr notiek
+                    atpazīšana.
+                </div>
+            </div>
+
+            <div class="reset-button" @click="reset">
+                <span>No sākuma</span>
+                <i class="fas fa-sync-alt"></i>
+            </div>
         </div>
 
-        <element-tag class="tag tag-1" :correct="isAnswerACorrect" :incorrect="isAnswerAIncorrect"/>
-        <element-tag class="tag tag-2" :correct="isAnswerBCorrect" :incorrect="isAnswerBIncorrect"/>
-        <element-tag class="tag tag-3" :correct="isAnswerCCorrect" :incorrect="isAnswerCIncorrect"/>
+        <detector :position-x="800" :position-y="150" :definitions="featureDefinitions" :correct-answer="1"
+                  :state="state1" @detected="(s) => this.setState1(s)" @failed="failedDetection"/>
 
-        <div class="column1" :class="{correct: isAnswerACorrect, wrong: isAnswerAIncorrect}">
+        <detector :position-x="60" :position-y="370" :definitions="featureDefinitions" :correct-answer="2"
+                  :state="state2" @detected="(s) => this.setState2(s)" @failed="failedDetection"/>
+
+        <detector :position-x="800" :position-y="550" :definitions="featureDefinitions" :correct-answer="3"
+                  :state="state3" @detected="(s) => this.setState3(s)" @failed="failedDetection"/>
+
+        <div class="question-row column1" :class="{correct: state1Correct, wrong: state1Incorrect}">
             <div class="answer">OĻI</div>
             <div class="question-text">Iezis veidojies
                 dēdēšanas procesā kalnu masīvu nogāzēs un kalnu upēs. Iežu
@@ -19,7 +40,7 @@
             </div>
         </div>
 
-        <div class="column2" :class="{correct: isAnswerBCorrect, wrong: isAnswerBIncorrect}">
+        <div class="question-row column2" :class="{correct: state2Correct, wrong: state2Incorrect}">
             <div class="answer">SMILŠAKMENS</div>
             <div class="question-text">Iezis ir veidojies
                 ilgstoša ūdens transporta rezultātā. Ieža graudi ir
@@ -27,7 +48,7 @@
             </div>
         </div>
 
-        <div class="column3" :class="{correct: isAnswerCCorrect, wrong: isAnswerCIncorrect}">
+        <div class="question-row column3" :class="{correct: state3Correct, wrong: state3Incorrect}">
             <div class="answer">MĀLS</div>
             <div class="question-text">Iezis veidojies,
                 uzkrājoties ļoti sīkām iežu daļiņām ūdens tilpnēs mierīgos
@@ -38,14 +59,26 @@
         <div class="container offscreen">
             <div class="row">
                 <div class="col-lg-6 text-center">
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(0,true)">Correct #1</button>
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(1,true)">Correct #2</button>
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(2,true)">Correct #3</button>
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setState1(AnswerState.CORRECT)">
+                        Correct #1
+                    </button>
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setState2(AnswerState.CORRECT)">
+                        Correct #2
+                    </button>
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setState3(AnswerState.CORRECT)">
+                        Correct #3
+                    </button>
                 </div>
                 <div class="col-lg-6 text-center">
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(0,false)">Wrong #1</button>
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(1,false)">Wrong #2</button>
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(2,false)">Wrong #3</button>
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setState1(AnswerState.INCORRECT)">Wrong
+                        #1
+                    </button>
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setState2(AnswerState.INCORRECT)">Wrong
+                        #2
+                    </button>
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setState3(AnswerState.INCORRECT)">Wrong
+                        #3
+                    </button>
                 </div>
             </div>
         </div>
@@ -56,114 +89,88 @@
 <script>
 
 import {AnswerState} from "@js/Stuctures/Constants.js";
-import DetectionFeature from "@js/Stuctures/DetectionFeature";
-import ElementTag from "./components/ElementTag.vue";
-import ObjectRecognitionServiceInstance from '@js/Services/ObjectRecongnitionService.js';
 import Config from "@json/config.json";
+import Detector from "@js/gui/components/Detector.vue";
+import FeatureDefinitionBuilder from "@js/Services/FeatureDefinitionBuilder";
 
 export default {
     name: "Quiz1View",
     components: {
-        ElementTag
+        Detector
     },
     data() {
         return {
-            answerState: [
-                AnswerState.UNKNOWN,
-                AnswerState.UNKNOWN,
-                AnswerState.UNKNOWN
-            ],
-            resetTimeout: null
+            AnswerState: AnswerState,
+            state1: null,
+            state2: null,
+            state3: null,
+            resetTimeout: null,
+            featureDefinitions: FeatureDefinitionBuilder.buildDefinitionsFromConfiguration(Config.objectDefinitions1, 15),
+            hasDetectionError: false,
+            detectionErrorTimeout: null,
         };
     },
     computed: {
-        isAnswerACorrect() {
-            return this.answerState[0] === AnswerState.CORRECT;
+        state1Correct() {
+            return this.state1 === AnswerState.CORRECT;
         },
-        isAnswerAIncorrect() {
-            return this.answerState[0] === AnswerState.INCORRECT;
+        state1Incorrect() {
+            return this.state1 === AnswerState.INCORRECT;
         },
-        isAnswerBCorrect() {
-            return this.answerState[1] === AnswerState.CORRECT;
+
+        state2Correct() {
+            return this.state2 === AnswerState.CORRECT;
         },
-        isAnswerBIncorrect() {
-            return this.answerState[1] === AnswerState.INCORRECT;
+        state2Incorrect() {
+            return this.state2 === AnswerState.INCORRECT;
         },
-        isAnswerCCorrect() {
-            return this.answerState[2] === AnswerState.CORRECT;
+
+        state3Correct() {
+            return this.state3 === AnswerState.CORRECT;
         },
-        isAnswerCIncorrect() {
-            return this.answerState[2] === AnswerState.INCORRECT;
+        state3Incorrect() {
+            return this.state3 === AnswerState.INCORRECT;
         },
     },
     methods: {
-        setDebugState(index, state) {
-            this.$set(this.answerState,
-                index,
-                state ? AnswerState.CORRECT : AnswerState.INCORRECT
-            );
-        },
         reset() {
-            this.$set(this.answerState, 0, AnswerState.UNKNOWN);
-            this.$set(this.answerState, 1, AnswerState.UNKNOWN);
-            this.$set(this.answerState, 2, AnswerState.UNKNOWN);
-            ObjectRecognitionServiceInstance.resetDetector();
+            this.state1 = null;
+            this.state2 = null;
+            this.state3 = null;
         },
         updateResetTimer() {
             clearTimeout(this.resetTimeout);
             this.resetTimeout = setTimeout(this.reset, 60000);
         },
-
-        //TODO Check for result age
-        checkAnswer(result) {
-            if (result.regionId === 1) {
-                this.$set(this.answerState,
-                    0,
-                    (result.id === Config.quiz1.AAnswerId) ? AnswerState.CORRECT : AnswerState.INCORRECT
-                );
+        setState1(s) {
+            if (this.state1 === null) {
+                this.state1 = s
+                this.updateResetTimer();
             }
-            if (result.regionId === 2) {
-                this.$set(this.answerState,
-                    1,
-                    (result.id === Config.quiz1.BAnswerId) ? AnswerState.CORRECT : AnswerState.INCORRECT
-                );
+        },
+        setState2(s) {
+            if (this.state2 === null) {
+                this.state2 = s
+                this.updateResetTimer();
             }
-            if (result.regionId === 3) {
-                this.$set(this.answerState,
-                    2,
-                    (result.id === Config.quiz1.CAnswerId) ? AnswerState.CORRECT : AnswerState.INCORRECT
-                );
+        },
+        setState3(s) {
+            if (this.state3 === null) {
+                this.state3 = s
+                this.updateResetTimer();
             }
-            this.updateResetTimer();
         },
-
-        onNewObjectDetected(result) {
-            this.checkAnswer(result);
+        failedDetection() {
+            this.hasDetectionError = true;
+            clearTimeout(this.detectionErrorTimeout);
+            this.detectionErrorTimeout = setTimeout(() => this.hasDetectionError = false, 5000);
         },
-        onObjectRemoved(result) {
-        },
-        onObjectUpdated(result) {
-        }
     },
     mounted() {
-
         //To disable context menu
         window.addEventListener("contextmenu", function (e) {
             e.preventDefault();
         });
-
-        ObjectRecognitionServiceInstance.setObjectDefinitions(Config.objectDefinitions1);
-
-        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(1, 680, 90, 1000, 300));
-        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(2, 15, 300, 330, 510));
-        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(3, 680, 500, 1000, 720));
-
-        ObjectRecognitionServiceInstance.detectedHandler = this.onObjectUpdated;
-        ObjectRecognitionServiceInstance.detectedNewHandler = this.onNewObjectDetected;
-        ObjectRecognitionServiceInstance.detectedLostHandler = this.onObjectRemoved;
-
-        ObjectRecognitionServiceInstance.runDetectionLoop();
-
     }
 }
 </script>
@@ -176,7 +183,6 @@ export default {
     position: absolute;
     width: 1024px;
     height: 768px;
-   // background: linear-gradient(to bottom, rgba(255, 255, 160, 1) 0%, rgba(255, 255, 255, 1) 72%);
     background: white;
 
     .offscreen {
@@ -187,7 +193,7 @@ export default {
     }
 
     .background {
-        top: 0;
+        top: 60px;
         left: 0;
         position: absolute;
         width: 1024px;
@@ -203,15 +209,45 @@ export default {
         font-weight: bold;
         width: 1024px;
         left: 0;
-        height: 80px;
+        height: 120px;
         text-align: center;
-        font-size: 50px;
+        font-size: 38px;
         line-height: 80px;
-        //text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-        //background: linear-gradient(to bottom, rgba(255, 183, 107, 1) 0%, rgba(255, 167, 61, 1) 55%, rgba(255, 124, 0, 1) 87%, rgba(255, 127, 4, 1) 100%);
-        background: linear-gradient(to bottom, rgba(28, 214, 0, 1) 0%, rgba(5, 109, 0, 1) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        background-color: white;
+        color: #606060;
+    }
+
+    .detector-info {
+        display: flex;
+        align-content: flex-end;
+        justify-content: center;
+        flex-direction: row;
+        align-items: flex-end;
+        position: absolute;
+        top: 35px;
+        left: 0;
+        right: 0;
+        padding: 6px;
+
+        & .icon {
+            width: 70px;
+            height: 70px;
+            margin-right: 8px;
+            background-size: cover;
+
+            &.hand-icon-1 {
+                background-image: url('@images/hand-icon-1.png');
+            }
+
+            &.hand-icon-2 {
+                background-image: url('@images/hand-icon-2.png');
+            }
+        }
+
+        & .text {
+            font-size: 18px;
+            font-weight: normal;
+        }
     }
 
     .answer {
@@ -226,15 +262,20 @@ export default {
         opacity: 0;
     }
 
-    .column1 {
+    .question-row {
+        display: flex;
+        align-items: center;
         position: absolute;
-        top: 140px;
-        left: 0;
-        width: 650px;
-        height: 120px;
-        background-color: rgba(255, 255, 255, 0.5);
-        padding-left: 20px;
+        background-color: rgba(255, 255, 255, 1);
         transition: all linear 500ms;
+    }
+
+    .column1 {
+        top: 180px;
+        left: 0;
+        width: 750px;
+        height: 100px;
+        padding-left: 20px;
 
         .answer {
             right: 0;
@@ -249,14 +290,11 @@ export default {
     }
 
     .column2 {
-        position: absolute;
-        top: 360px;
+        top: 380px;
         right: 0;
-        width: 650px;
+        width: 750px;
         height: 120px;
-        background-color: rgba(255, 255, 255, 0.5);
         padding-right: 20px;
-        transition: all linear 500ms;
 
         .answer {
             left: 0;
@@ -271,14 +309,11 @@ export default {
     }
 
     .column3 {
-        position: absolute;
         top: 580px;
         left: 0;
-        width: 650px;
-        height: 135px;
-        background-color: rgba(255, 255, 255, 0.5);
+        width: 750px;
+        height: 125px;
         padding-left: 20px;
-        transition: all linear 500ms;
 
         .answer {
             right: 0;
@@ -316,18 +351,22 @@ export default {
 
     .reset-button {
         position: absolute;
-        right: 10px;
+        right: 20px;
         top: 20px;
-        width: 60px;
-        height: 60px;
+        width: auto;
+        height: 32px;
         z-index: 50;
+        display: flex;
+        align-items: center;
 
         i {
-            font-size: 50px;
-            background: linear-gradient(to bottom, rgba(28, 214, 0, 1) 0%, rgba(5, 109, 0, 1) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            //text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            font-size: 32px;
+            color: #606060;
+        }
+
+        span {
+            font-size: 18px;
+            margin-right: 8px;
         }
     }
 
@@ -335,8 +374,7 @@ export default {
         margin: 10px;
         color: #414141;
         font-size: 28px;
-        line-height: 28px;
-        text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        line-height: 32px;
     }
 
 }

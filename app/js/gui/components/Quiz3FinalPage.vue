@@ -34,7 +34,7 @@ export default {
     width: 1024px;
     height: 768px;
     visibility: hidden;
-    background-color: greenyellow;
+    //background-color: greenyellow;
 
     &.visible {
         visibility: visible;
@@ -50,13 +50,15 @@ export default {
         height:80px;
         text-align: center;
         font-size: 60px;
+        font-weight: 800;
         line-height: 80px;
-        text-shadow: 0 6px 20px rgba(0,0,0,0.7);
-        background: linear-gradient(to bottom, rgba(180,221,180,1) 0%,rgba(101,196,0,1) 62%,rgba(0,138,0,1) 88%,rgba(0,87,0,1) 99%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        //text-shadow: 0 6px 20px rgba(0,0,0,0.7);
+        //background: linear-gradient(to bottom, rgba(180,221,180,1) 0%,rgba(101,196,0,1) 62%,rgba(0,138,0,1) 88%,rgba(0,87,0,1) 99%);
+        //-webkit-background-clip: text;
+        //-webkit-text-fill-color: transparent;
         opacity: 0.0;
         transition: all linear 500ms;
+        color: #606060;
 
         &.visible {
             opacity: 1.0;
@@ -70,11 +72,11 @@ export default {
         text-align: center;
         font-size: 35px;
         line-height: 26px;
-        top: 340px;
+        top: 320px;
         padding-left: 40px;
         padding-right: 40px;
         color: #414141;
-        text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        //text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
     }
 }
 </style>

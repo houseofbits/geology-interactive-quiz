@@ -230,7 +230,7 @@ export default class ObjectDetectionService {
      * @returns {?ObjectDetectionResult2}
      */
     reduceDetectionResultToFittestOverlappingObject(detectionResultsArray, existingObject) {
-        const fittestObject =  detectionResultsArray.reduce((p, v) => {
+        const fittestObject = detectionResultsArray.reduce((p, v) => {
             const distance = this.calculateDistance(v.x, v.y, existingObject.x, existingObject.y);
             const dstWeight = (POSITIVE_OVERLAP_THRESHOLD - Math.min(distance, POSITIVE_OVERLAP_THRESHOLD)) / POSITIVE_OVERLAP_THRESHOLD;
             const weight = (FITTEST_OVERLAPPING_WEIGHT_FACTOR * v.weight)
@@ -407,13 +407,37 @@ export default class ObjectDetectionService {
     }
 
     /**
+     * @param {Number} x
+     * @param {Number} y
+     * @param {DetectionFeature} feature
+     * @returns {Boolean}
+     */
+    isPointIntersectedWithFeature(x, y, feature) {
+
+        if (x < feature.minx) {
+            return false;
+        }
+        if (y < feature.miny) {
+            return false;
+        }
+        if (x > feature.maxx) {
+            return false;
+        }
+        if (y > feature.maxy) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * @param {DetectedObject[]} results
      * @param {DetectionFeature} feature
      */
     matchDetectedWithFeature(results, feature) {
         const matched = [];
         for (const result of results) {
-            if (this.isDetectionResultIntersectedWithFeature(result, feature)) {
+            if (this.isPointIntersectedWithFeature(result.x, result.y, feature)) {
                 matched.push(result);
             }
         }
@@ -427,11 +451,20 @@ export default class ObjectDetectionService {
     updateDetectedWithFeature(results, regions) {
         for (const region of regions) {
             for (const result of results) {
-                if (this.isDetectionResultIntersectedWithFeature(result, region)) {
+                if (this.isPointIntersectedWithFeature(result.x, result.y, region)) {
                     result.regionId = region.id;
                 }
             }
         }
+    }
+
+    isPointIntersectingWithFeatures(x, y, regions) {
+        for (const region of regions) {
+            if (this.isPointIntersectedWithFeature(x, y, region)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 }

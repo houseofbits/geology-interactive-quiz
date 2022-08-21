@@ -1,8 +1,8 @@
 <template>
     <div class="screen">
-        <span class="title">Atpazīsti vietas</span>
 
-        <quiz2-slide v-for="(n, index) in 5" :index="index" :key="'slide'+index" :is-open="openIndex===index" @click="testClick"
+        <quiz2-slide v-for="(n, index) in 5" :index="index" :key="'slide'+index" :is-open="openIndex===index"
+                     @click="testClick"
                      @close="closeSlide">
             <template v-slot:text>
                 <div class="info">
@@ -14,31 +14,64 @@
             </template>
         </quiz2-slide>
 
-        <element-tag v-for="(a, index) in 5" class="tag" :data-index="index" :class="{visible: !openIndex}"
-                     :correct="isTagCorrect(index)"
-                     :incorrect="isTagIncorrect(index)"
-                     :key="'element'+index"/>
-        <div v-for="(a, index) in 5" class="point" :data-index="index" :class="{visible: !openIndex}" :key="'line'+index">
+        <detector v-for="(a, index) in 5"
+                  :class="{visible: openIndex===null}"
+                  :position-x="tagState[index].x"
+                  :position-y="tagState[index].y"
+                  :definitions="featureDefinitions"
+                  :correct-answer="tagState[index].answer"
+                  :state="tagState[index].state"
+                  @detected="(s) => setTagAnswerState(index, s)"
+                  @failed="failedDetection"/>
+
+        <div v-for="(a, index) in 5" class="point" :data-index="index" :class="{visible: !openIndex}"
+             :key="'line'+index">
             <div class="line"></div>
         </div>
 
-        <div class="main-title" :class="{visible: !openIndex}">Atpazīsti vietas</div>
+        <div class="main-title" :class="{visible: !openIndex}">
+            <span>Atpazīsti vietas</span>
+
+            <div v-if="hasDetectionError" class="detector-info">
+                <div class="icon hand-icon-2"></div>
+                <div class="text">
+                    Neizdevās atpazīt elementu. Mēģini vēlreiz novietojot elementu precīzi sarkanajā aplī.
+                </div>
+            </div>
+            <div v-else class="detector-info">
+                <div class="icon hand-icon-1"></div>
+                <div class="text">Novieto atbilstošo elementu sarkanajā aplī. Turi to vismaz 2 sekundes, kamēr notiek
+                    atpazīšana.
+                </div>
+            </div>
+
+        </div>
 
         <div class="container offscreen">
             <div class="row">
                 <div class="col-lg-6 text-center">
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(0,true)">Correct #1</button>
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(1,true)">Correct #2</button>
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(2,true)">Correct #3</button>
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(3,true)">Correct #4</button>
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(4,true)">Correct #5</button>
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(0,true)">Correct #1
+                    </button>
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(1,true)">Correct #2
+                    </button>
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(2,true)">Correct #3
+                    </button>
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(3,true)">Correct #4
+                    </button>
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(4,true)">Correct #5
+                    </button>
                 </div>
                 <div class="col-lg-6 text-center">
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(0,false)">Wrong #1</button>
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(1,false)">Wrong #2</button>
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(2,false)">Wrong #3</button>
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(3,false)">Wrong #4</button>
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(4,false)">Wrong #5</button>
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(0,false)">Wrong #1
+                    </button>
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(1,false)">Wrong #2
+                    </button>
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(2,false)">Wrong #3
+                    </button>
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(3,false)">Wrong #4
+                    </button>
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(4,false)">Wrong #5
+                    </button>
                 </div>
             </div>
         </div>
@@ -51,45 +84,63 @@
 
 import axios from 'axios';
 import Quiz2Slide from "./components/Quiz2Slide.vue";
-import ElementTag from "./components/ElementTag.vue";
-import DetectionFeature from "@js/Stuctures/DetectionFeature";
 import TextLV from "@json/quiz2-text-lv.json";
 import ObjectRecognitionServiceInstance from '@js/Services/ObjectRecongnitionService.js';
 import Config from "@json/config.json";
 import {AnswerState} from "@js/Stuctures/Constants.js";
+import FeatureDefinitionBuilder from "@js/Services/FeatureDefinitionBuilder";
+import Detector from "@js/gui/components/Detector.vue";
 
 export default {
     name: "Quiz2View",
     components: {
         Quiz2Slide,
-        ElementTag
+        Detector
     },
     data() {
         return {
+            featureDefinitions: FeatureDefinitionBuilder.buildDefinitionsFromConfiguration(Config.objectDefinitions2, 15),
             answerIndex: null,
             openIndex: null,
             tagState: [
                 {
-                    state: 0,
-                    timer: null
+                    state: null,
+                    timer: null,
+                    x:25,
+                    y:150,
+                    answer:0,
                 },
                 {
-                    state: 0,
-                    timer: null
+                    state: null,
+                    timer: null,
+                    x:230,
+                    y:250,
+                    answer:1,
                 },
                 {
-                    state: 0,
-                    timer: null
+                    state: null,
+                    timer: null,
+                    x:435,
+                    y:150,
+                    answer:2,
                 },
                 {
-                    state: 0,
-                    timer: null
+                    state: null,
+                    timer: null,
+                    x:640,
+                    y:250,
+                    answer:3,
                 },
                 {
-                    state: 0,
-                    timer: null
+                    state: null,
+                    timer: null,
+                    x:845,
+                    y:150,
+                    answer:4,
                 },
             ],
+            hasDetectionError: false,
+            detectionErrorTimeout: null,
         };
     },
     watch: {
@@ -109,11 +160,6 @@ export default {
     methods: {
         setDebugState(index, state) {
             this.setTagAnswerState(index, state ? AnswerState.CORRECT : AnswerState.INCORRECT);
-            if(state){
-                this.answerIndex = index;
-            } else {
-                this.answerIndex = null;
-            }
         },
         isTagCorrect(index) {
             return this.tagState[index].state === AnswerState.CORRECT;
@@ -121,21 +167,29 @@ export default {
         isTagIncorrect(index) {
             return this.tagState[index].state === AnswerState.INCORRECT;
         },
-        setTagAnswerState(index, state){
-            this.tagState[index].state = state;
-            clearTimeout(this.tagState[index].timer);
-            if (state === AnswerState.CORRECT || state === AnswerState.INCORRECT) {
-                this.tagState[index].timer = setTimeout(() => {
-                    this.setTagAnswerState(index, AnswerState.UNKNOWN);
-                }, 2000);
+        setTagAnswerState(index, state) {
+            if (this.tagState[index].state === null) {
+                this.tagState[index].state = state;
+                setTimeout(() => this.openSlide(index), 1000);
+            } else if (state === null) {
+                this.tagState[index].state = null;
             }
         },
-        clearTagState(){
-            this.setTagAnswerState(0, AnswerState.UNKNOWN);
-            this.setTagAnswerState(1, AnswerState.UNKNOWN);
-            this.setTagAnswerState(2, AnswerState.UNKNOWN);
-            this.setTagAnswerState(3, AnswerState.UNKNOWN);
-            this.setTagAnswerState(4, AnswerState.UNKNOWN);
+        openSlide(index) {
+            this.answerIndex = (this.tagState[index].state === AnswerState.CORRECT) ? index : null;
+
+            clearTimeout(this.tagState[index].timer);
+
+            this.tagState[index].timer = setTimeout(() => {
+                this.setTagAnswerState(index, null);
+            }, 5000);
+        },
+        clearTagState() {
+            this.setTagAnswerState(0, null);
+            this.setTagAnswerState(1, null);
+            this.setTagAnswerState(2, null);
+            this.setTagAnswerState(3, null);
+            this.setTagAnswerState(4, null);
         },
         testClick(index) {
             this.openIndex = index;
@@ -144,22 +198,12 @@ export default {
             this.requestLightState(null);
             this.openIndex = null;
             this.answerIndex = null;
-            ObjectRecognitionServiceInstance.resetDetector();
             this.clearTagState();
-        },
-        checkAnswer(result) {
-            const id = result.regionId;
-            if (Config.quiz2.correctAnswerIds[id] === result.id) {
-                this.answerIndex = id;
-                this.setTagAnswerState(id, AnswerState.CORRECT);
-            } else {
-                this.answerIndex = null;
-                this.setTagAnswerState(id, AnswerState.INCORRECT);
-            }
         },
         requestPortPinsWithParams(params) {
             axios.get(Config.quiz2.endpointUrl, {
                 responseType: 'text',
+                withCredentials: false,
                 params: params
             });
         },
@@ -176,14 +220,11 @@ export default {
             }
             this.requestPortPinsWithParams(params);
         },
-        onNewObjectDetected(result) {
-            this.checkAnswer(result);
+        failedDetection() {
+            this.hasDetectionError = true;
+            clearTimeout(this.detectionErrorTimeout);
+            this.detectionErrorTimeout = setTimeout(() => this.hasDetectionError = false, 5000);
         },
-        onObjectRemoved(result) {
-        },
-        onObjectUpdated(result) {
-            this.checkAnswer(result);
-        }
     },
     mounted() {
 
@@ -192,19 +233,21 @@ export default {
             e.preventDefault();
         });
 
-        ObjectRecognitionServiceInstance.setObjectDefinitions(Config.objectDefinitions2);
+        this.clearTagState();
 
-        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(0, 0, 0, 203, 350));
-        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(1, 203, 0, 407, 450));
-        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(2, 407, 0, 612, 350));
-        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(3, 612, 0, 818, 450));
-        ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(4, 818, 0, 1024, 350));
-
-        ObjectRecognitionServiceInstance.detectedHandler = this.onObjectUpdated;
-        ObjectRecognitionServiceInstance.detectedNewHandler = this.onNewObjectDetected;
-        ObjectRecognitionServiceInstance.detectedLostHandler = this.onObjectRemoved;
-
-        ObjectRecognitionServiceInstance.runDetectionLoop();
+        // ObjectRecognitionServiceInstance.setObjectDefinitions(Config.objectDefinitions2);
+        //
+        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(0, 0, 0, 203, 350));
+        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(1, 203, 0, 407, 450));
+        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(2, 407, 0, 612, 350));
+        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(3, 612, 0, 818, 450));
+        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(4, 818, 0, 1024, 350));
+        //
+        // ObjectRecognitionServiceInstance.detectedHandler = this.onObjectUpdated;
+        // ObjectRecognitionServiceInstance.detectedNewHandler = this.onNewObjectDetected;
+        // ObjectRecognitionServiceInstance.detectedLostHandler = this.onObjectRemoved;
+        //
+        // ObjectRecognitionServiceInstance.runDetectionLoop();
 
     }
 }
@@ -230,25 +273,53 @@ export default {
         display: inline-block;
         color: gray;
         position: absolute;
-        width: 1024px;
         font-weight: bold;
-        top: 20px;
+        width: 1024px;
         left: 0;
-        height: 80px;
+        height: 120px;
         text-align: center;
-        font-size: 65px;
+        font-size: 38px;
         line-height: 80px;
-        //text-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
-        //background: linear-gradient(to bottom, rgba(255, 183, 107, 1) 0%, rgba(255, 167, 61, 1) 55%, rgba(255, 124, 0, 1) 87%, rgba(255, 127, 4, 1) 100%);
-        background: linear-gradient(to bottom, rgba(28,214,0,1) 0%,rgba(5,109,0,1) 100%);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
+        background-color: white;
+        color: #606060;
         opacity: 0.0;
         transition: all linear 500ms;
-        z-index: 5;
 
         &.visible {
             opacity: 1.0;
+        }
+    }
+
+    .detector-info {
+        display: flex;
+        align-content: flex-end;
+        justify-content: center;
+        flex-direction: row;
+        align-items: flex-end;
+        position: absolute;
+        top: 35px;
+        left: 0;
+        right: 0;
+        padding: 6px;
+
+        & .icon {
+            width: 70px;
+            height: 70px;
+            margin-right: 8px;
+            background-size: cover;
+
+            &.hand-icon-1 {
+                background-image: url('@images/hand-icon-1.png');
+            }
+
+            &.hand-icon-2 {
+                background-image: url('@images/hand-icon-2.png');
+            }
+        }
+
+        & .text {
+            font-size: 18px;
+            font-weight: normal;
         }
     }
 
@@ -392,7 +463,7 @@ export default {
 
 .tag {
     position: absolute;
-    z-index: 5;
+    z-index: 10;
     opacity: 0;
     transition: all linear 500ms;
 
@@ -454,7 +525,7 @@ export default {
         bottom: 80px;
 
         .line {
-            height: 380px;
+            height: 346px;
         }
     }
 
@@ -463,7 +534,7 @@ export default {
         bottom: 80px;
 
         .line {
-            height: 290px;
+            height: 247px;
         }
     }
 
@@ -472,7 +543,7 @@ export default {
         bottom: 80px;
 
         .line {
-            height: 380px;
+            height: 346px;
         }
     }
 
@@ -481,7 +552,7 @@ export default {
         bottom: 80px;
 
         .line {
-            height: 290px;
+            height: 247px;
         }
     }
 
@@ -490,7 +561,7 @@ export default {
         bottom: 80px;
 
         .line {
-            height: 380px;
+            height: 346px;
         }
     }
 }

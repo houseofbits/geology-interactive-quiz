@@ -32,7 +32,12 @@ class ObjectRecognitionService {
     registerTouchHandlers() {
         document.addEventListener('touchstart', function (event) {
             for (const touch of event.touches) {
-                this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
+                if (this.objectDetectionService.isPointIntersectingWithFeatures(touch.clientX, touch.clientY, this.regions)) {
+                    this.touches.push(new TouchPoint(touch.clientX, touch.clientY));
+                }
+            }
+            while (this.touches.length > 9) {
+                this.touches.shift();
             }
         }.bind(this), false);
 
@@ -49,11 +54,13 @@ class ObjectRecognitionService {
     }
 
     runDetectionLoop() {
-        this.detectorLoopIntervalId = setInterval(() => {
+        clearTimeout(this.detectorLoopIntervalId);
+        this.detectorLoopIntervalId = setTimeout(() => {
             if (!this.isDisabled) {
                 this.detect();
                 this.time += 16;
             }
+            this.runDetectionLoop();
         }, 16);
     }
 
@@ -63,6 +70,9 @@ class ObjectRecognitionService {
     }
 
     detect() {
+        while (this.detectedObjects.length > 10) {
+            this.detectedObjects.shift();
+        }
         this.previousDetectedObjects = _.cloneDeep(this.detectedObjects);
         this.detectedObjects = this.objectDetectionService.detectObjects(this.time, this.touches, this.objectDefinitionsArray, this.detectedObjects);
         this.objectDetectionService.updateDetectedWithFeature(this.detectedObjects, this.regions);
