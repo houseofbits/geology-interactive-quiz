@@ -200,12 +200,16 @@ export default {
             this.answerIndex = null;
             this.clearTagState();
         },
-        requestPortPinsWithParams(params) {
-            axios.get(Config.quiz2.endpointUrl, {
-                responseType: 'text',
-                withCredentials: false,
-                params: params
-            });
+        async requestPortPinsWithParams(params) {
+            try {
+                await axios.get(Config.quiz2.endpointUrl, {
+                    responseType: 'text',
+                    withCredentials: false,
+                    params: params
+                });
+            } catch (e) {
+                console.log('axios error' + e.message);
+            }
         },
         requestLightState(column) {
             const pins = Config.quiz2.columnPins;

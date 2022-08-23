@@ -3,5 +3,6 @@ export default class PointDistance {
         this.indexA = indexA;
         this.indexB = indexB;
         this.distance = distance;
+        this.angle = 0;
     }
 }

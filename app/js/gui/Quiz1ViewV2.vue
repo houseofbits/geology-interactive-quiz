@@ -17,68 +17,37 @@
                 </div>
             </div>
 
-            <div class="reset-button" @click="reset">
-                <span>No sākuma</span>
-                <i class="fas fa-sync-alt"></i>
-            </div>
+
         </div>
 
-        <detector :position-x="800" :position-y="150" :definitions="featureDefinitions" :correct-answer="4"
-                  :state="state1" @detected="(s) => this.setState1(s)" @failed="failedDetection"/>
-
-        <detector :position-x="60" :position-y="370" :definitions="featureDefinitions" :correct-answer="2"
-                  :state="state2" @detected="(s) => this.setState2(s)" @failed="failedDetection"/>
-
-        <detector :position-x="800" :position-y="550" :definitions="featureDefinitions" :correct-answer="6"
-                  :state="state3" @detected="(s) => this.setState3(s)" @failed="failedDetection"/>
-
-        <div class="question-row column1" :class="{correct: state1Correct, wrong: state1Incorrect}">
-            <div class="answer">OĻI</div>
-            <div class="question-text">Iezis veidojies
-                dēdēšanas procesā kalnu masīvu nogāzēs un kalnu upēs. Iežu
-                atlūzas ir noapaļotas.
-            </div>
+        <div class="reset-button" @click="reset">
+            <span>No sākuma</span>
+            <i class="fas fa-sync-alt"></i>
         </div>
 
-        <div class="question-row column2" :class="{correct: state2Correct, wrong: state2Incorrect}">
-            <div class="answer">SMILŠAKMENS</div>
-            <div class="question-text">Iezis ir veidojies
-                ilgstoša ūdens transporta rezultātā. Ieža graudi ir
-                noapaļoti, un tā sastāvā dominē minerāls kvarcs.
-            </div>
+        <div class="continue-button" @click="nextQuestion">
+            <span>Turpināt</span>
+            <i class="fa-solid fa-arrow-right"></i>
         </div>
 
-        <div class="question-row column3" :class="{correct: state3Correct, wrong: state3Incorrect}">
-            <div class="answer">MĀLS</div>
-            <div class="question-text">Iezis veidojies,
-                uzkrājoties ļoti sīkām iežu daļiņām ūdens tilpnēs mierīgos
-                apstākļos. To galvenā sastāvdaļa ir īpaša minerālu grupa – mālu minerāli.
-            </div>
+        <detector :position-x="50" :position-y="50" :definitions="featureDefinitions" :correct-answer="answer"
+                  :state="state" @detected="setState" @failed="failedDetection"/>
+
+        <div class="question-row" :class="{correct: isCorrect, wrong: isIncorrect}">
+            <div class="answer">{{ title }}</div>
+            <div class="question-text">{{ text }}</div>
         </div>
 
         <div class="container offscreen">
             <div class="row">
                 <div class="col-lg-6 text-center">
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setState1(AnswerState.CORRECT)">
-                        Correct #1
+                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setState(AnswerState.CORRECT)">
+                        Correct
                     </button>
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setState2(AnswerState.CORRECT)">
-                        Correct #2
+                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setState(AnswerState.INCORRECT)">
+                        Wrong
                     </button>
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setState3(AnswerState.CORRECT)">
-                        Correct #3
-                    </button>
-                </div>
-                <div class="col-lg-6 text-center">
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setState1(AnswerState.INCORRECT)">Wrong
-                        #1
-                    </button>
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setState2(AnswerState.INCORRECT)">Wrong
-                        #2
-                    </button>
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setState3(AnswerState.INCORRECT)">Wrong
-                        #3
-                    </button>
+                    <button class="btn btn-lg btn-primary mt-2 btn-block" @click="nextQuestion">Next</button>
                 </div>
             </div>
         </div>
@@ -94,71 +63,77 @@ import Detector from "@js/gui/components/Detector.vue";
 import FeatureDefinitionBuilder from "@js/Services/FeatureDefinitionBuilder";
 
 export default {
-    name: "Quiz1View",
+    name: "Quiz1ViewV2",
     components: {
         Detector
     },
     data() {
         return {
             AnswerState: AnswerState,
-            state1: null,
-            state2: null,
-            state3: null,
             resetTimeout: null,
             featureDefinitions: FeatureDefinitionBuilder.buildDefinitionsFromConfiguration(Config.objectDefinitions1, 15),
             hasDetectionError: false,
             detectionErrorTimeout: null,
+
+            isCorrect: false,
+            isIncorrect: false,
+            selectedQuestion: 0,
+            state: null,
+            questions: [
+                {
+                    answer: 4,
+                    title: "OĻI",
+                    text: "Iezis veidojies dēdēšanas procesā kalnu masīvu nogāzēs un kalnu upēs. Iežu atlūzas ir noapaļotas.",
+                    state: null,
+                },
+                {
+                    answer: 2,
+                    title: "SMILŠAKMENS",
+                    text: "Iezis ir veidojies ilgstoša ūdens transporta rezultātā. Ieža graudi ir noapaļoti, un tā sastāvā dominē minerāls kvarcs. ",
+                    state: null,
+                },
+                {
+                    answer: 6,
+                    title: "MĀLS",
+                    text: "Iezis veidojies, uzkrājoties ļoti sīkām iežu daļiņām ūdens tilpnēs mierīgos apstākļos. To galvenā sastāvdaļa ir īpaša minerālu grupa – mālu minerāli.",
+                    state: null,
+                }
+            ]
         };
     },
     computed: {
-        state1Correct() {
-            return this.state1 === AnswerState.CORRECT;
+        text() {
+            return this.questions[this.selectedQuestion].text;
         },
-        state1Incorrect() {
-            return this.state1 === AnswerState.INCORRECT;
+        title() {
+            return this.questions[this.selectedQuestion].title;
         },
-
-        state2Correct() {
-            return this.state2 === AnswerState.CORRECT;
-        },
-        state2Incorrect() {
-            return this.state2 === AnswerState.INCORRECT;
-        },
-
-        state3Correct() {
-            return this.state3 === AnswerState.CORRECT;
-        },
-        state3Incorrect() {
-            return this.state3 === AnswerState.INCORRECT;
+        answer() {
+            return this.questions[this.selectedQuestion].answer;
         },
     },
     methods: {
+        nextQuestion() {
+            this.selectedQuestion = (this.selectedQuestion + 1) % 3;
+            this.state = null;
+            this.isCorrect = false;
+            this.isIncorrect = false;
+        },
+        setState(s) {
+            this.state = s;
+            this.isCorrect = s === AnswerState.CORRECT;
+            this.isIncorrect = s === AnswerState.INCORRECT;
+        },
+
         reset() {
-            this.state1 = null;
-            this.state2 = null;
-            this.state3 = null;
+            this.selectedQuestion = 0;
+            this.state = null;
+            this.isCorrect = false;
+            this.isIncorrect = false;
         },
         updateResetTimer() {
             clearTimeout(this.resetTimeout);
             this.resetTimeout = setTimeout(this.reset, 60000);
-        },
-        setState1(s) {
-            if (this.state1 === null) {
-                this.state1 = s
-                this.updateResetTimer();
-            }
-        },
-        setState2(s) {
-            if (this.state2 === null) {
-                this.state2 = s
-                this.updateResetTimer();
-            }
-        },
-        setState3(s) {
-            if (this.state3 === null) {
-                this.state3 = s
-                this.updateResetTimer();
-            }
         },
         failedDetection() {
             this.hasDetectionError = true;
@@ -268,51 +243,10 @@ export default {
         position: absolute;
         background-color: rgba(255, 255, 255, 1);
         transition: all linear 500ms;
-    }
-
-    .column1 {
-        top: 180px;
-        left: 0;
-        width: 750px;
-        height: 100px;
-        padding-left: 20px;
-
-        .answer {
-            right: 0;
-            background-color: rgba(57, 130, 53, 0.68);
-            padding-left: 20px;
-            padding-right: 20px;
-        }
-
-        &.correct .answer {
-            opacity: 1;
-        }
-    }
-
-    .column2 {
         top: 380px;
-        right: 0;
-        width: 750px;
-        height: 120px;
-        padding-right: 20px;
-
-        .answer {
-            left: 0;
-            background-color: rgba(57, 130, 53, 0.68);
-            padding-left: 20px;
-            padding-right: 20px;
-        }
-
-        &.correct .answer {
-            opacity: 1;
-        }
-    }
-
-    .column3 {
-        top: 580px;
-        left: 0;
-        width: 750px;
-        height: 125px;
+        left: 80px;
+        right: 80px;
+        height: 150px;
         padding-left: 20px;
 
         .answer {
@@ -326,6 +260,45 @@ export default {
             opacity: 1;
         }
     }
+
+    //
+    //.column2 {
+    //    top: 380px;
+    //    right: 0;
+    //    width: 750px;
+    //    height: 120px;
+    //    padding-right: 20px;
+    //
+    //    .answer {
+    //        left: 0;
+    //        background-color: rgba(57, 130, 53, 0.68);
+    //        padding-left: 20px;
+    //        padding-right: 20px;
+    //    }
+    //
+    //    &.correct .answer {
+    //        opacity: 1;
+    //    }
+    //}
+    //
+    //.column3 {
+    //    top: 580px;
+    //    left: 0;
+    //    width: 750px;
+    //    height: 125px;
+    //    padding-left: 20px;
+    //
+    //    .answer {
+    //        right: 0;
+    //        background-color: rgba(57, 130, 53, 0.68);
+    //        padding-left: 20px;
+    //        padding-right: 20px;
+    //    }
+    //
+    //    &.correct .answer {
+    //        opacity: 1;
+    //    }
+    //}
 
     .correct {
         background: linear-gradient(to bottom, rgba(57, 130, 53, 0.68) 0%, rgba(158, 221, 0, 0.56) 100%);
@@ -351,13 +324,15 @@ export default {
 
     .reset-button {
         position: absolute;
-        right: 20px;
-        top: 20px;
+        left: 20px;
+        bottom: 20px;
         width: auto;
         height: 32px;
         z-index: 50;
         display: flex;
         align-items: center;
+        color: gray;
+        font-weight: bold;
 
         i {
             font-size: 32px;
@@ -369,6 +344,30 @@ export default {
             margin-right: 8px;
         }
     }
+
+    .continue-button {
+        position: absolute;
+        right: 20px;
+        bottom: 20px;
+        width: auto;
+        height: 32px;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        color: gray;
+        font-weight: bold;
+
+        i {
+            font-size: 32px;
+            color: #606060;
+        }
+
+        span {
+            font-size: 18px;
+            margin-right: 8px;
+        }
+    }
+
 
     .question-text {
         margin: 10px;

@@ -32,6 +32,10 @@
                                  to="/touch">
                         Multitouch
                     </router-link>
+                    <router-link class="btn btn-lg btn-primary d-flex align-items-center justify-content-center"
+                                 to="/error">
+                        Error regions
+                    </router-link>
                 </div>
                 <div class="col-sm bg-dark"></div>
             </div>

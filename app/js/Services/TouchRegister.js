@@ -8,6 +8,7 @@ export default class TouchRegister {
         this.touches = [];
         /** @type {Region} */
         this.region = new Region(0, 0, 0, 0);
+        this.touchHandler = null;
     }
 
     registerInputHandlers() {
@@ -25,6 +26,9 @@ export default class TouchRegister {
     onTouchStartEvent(event) {
         this.addTouches(event.touches);
         this.removeByLimit(6);
+        if (this.touchHandler) {
+            this.touchHandler();
+        }
     }
 
     onTouchEndEvent(event) {
@@ -34,6 +38,9 @@ export default class TouchRegister {
     onTouchMoveEvent(event) {
         this.addTouches(event.touches);
         this.removeByLimit(6);
+        if (this.touchHandler) {
+            this.touchHandler();
+        }
     }
 
     addTouches(touches) {
@@ -49,5 +56,24 @@ export default class TouchRegister {
         while (this.touches.length > limit) {
             this.touches.shift();
         }
+    }
+
+    getCenter() {
+        if (this.touches.length === 0) {
+            return null;
+        }
+
+        let x = 0;
+        let y = 0;
+
+        for (const touch of this.touches) {
+            x += touch.x;
+            y += touch.y;
+        }
+
+        x = x / this.touches.length;
+        y = y / this.touches.length;
+
+        return {x, y};
     }
 }

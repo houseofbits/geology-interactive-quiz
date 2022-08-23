@@ -20,8 +20,8 @@
         <detector v-for="(a, index) in 8"
                   :class="{visible: selectedQuestion===index}"
                   :position-x="tagPositions[index]" :position-y="480" :definitions="featureDefinitions"
-                  :correct-answer="1"
-                  :state="pageAnswers[index]" @detected="setAnswer" @failed="failedDetection"/>
+                  :correct-answer="correctAnswer"
+                  :state="currentAnswerState" @detected="setAnswer" @failed="failedDetection"/>
 
         <quiz3-navigator :items="pageAnswers" :selected="selectedQuestion"/>
 
@@ -100,8 +100,6 @@ export default {
             selectedQuestion: 0,
             isCorrectAnswer: false,
             numberOfIncorrectAnswers: 0,
-            answerId: null,
-            wrongAnswers: [],
             isPageFinished: false,
             pageAnswers: [
                 null,
@@ -120,27 +118,27 @@ export default {
             tagStateTimers: [null, null, null, null, null, null, null, null],
             hasDetectionError: false,
             detectionErrorTimeout: null,
+            currentAnswerState: null,
         };
     },
     watch: {
-        answerId(id) {
-            if (id === null) {
-                return;
-            }
-
-            if (Config.quiz3.correctAnswerIds[this.selectedQuestion] === id) {
-                this.selectedCorrectAnswer();
-            } else {
-                if (!this.wrongAnswers.includes(id)) {
-                    this.selectedWrongAnswer();
-                    this.wrongAnswers.push(id);
+        currentAnswerState(state) {
+                if (state === null) {
+                    return;
                 }
-            }
+                if (state === AnswerState.CORRECT) {
+                    this.selectedCorrectAnswer();
+                } else {
+                    this.selectedWrongAnswer();
+                }
         }
     },
     computed: {
         text() {
             return TextLV;
+        },
+        correctAnswer() {
+            return Config.quiz3.correctAnswerIds[this.selectedQuestion];
         }
     },
     methods: {
@@ -150,6 +148,7 @@ export default {
             if (state === AnswerState.CORRECT || state === AnswerState.INCORRECT) {
                 this.tagStateTimers[index] = setTimeout(() => {
                     this.setTagAnswerState(index, AnswerState.UNKNOWN);
+                    this.setAnswer(null);
                 }, 2000);
             }
         },
@@ -183,7 +182,8 @@ export default {
             }
         },
         setAnswer(result) {
-            this.answerId = result.id;
+            this.updateResetTimer();
+            this.currentAnswerState = result;
         },
         resetDetector() {
             ObjectRecognitionServiceInstance.resetDetector();
@@ -196,8 +196,7 @@ export default {
             this.isCorrectAnswer = false;
             this.numberOfIncorrectAnswers = 0;
             this.isPageFinished = false;
-            this.wrongAnswers = [];
-            this.answerId = null;
+            this.currentAnswerState = null;
             if (this.selectedQuestion === 0) {
                 this.isFinalViewVisible = false;
                 this.pageAnswers = [
@@ -242,17 +241,11 @@ export default {
             this.resetTimeout = setTimeout(this.reset, 60000);
         },
         failedDetection() {
+            this.updateResetTimer();
             this.hasDetectionError = true;
             clearTimeout(this.detectionErrorTimeout);
-            this.detectionErrorTimeout = setTimeout(() => this.hasDetectionError = false, 5000);
+            this.detectionErrorTimeout = setTimeout(() => this.hasDetectionError = false, 3000);
         },
-        // onNewObjectDetected(result) {
-        //     this.checkAnswer(result);
-        // },
-        // onObjectRemoved(result) {
-        // },
-        // onObjectUpdated(result) {
-        // }
     },
     mounted() {
 
@@ -262,24 +255,6 @@ export default {
         });
 
         this.initPage();
-
-        // ObjectRecognitionServiceInstance.setObjectDefinitions(Config.objectDefinitions3);
-        //
-        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(1, 100, 400, 920, 720));
-        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(2, 100, 400, 920, 720));
-        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(3, 100, 400, 920, 720));
-        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(4, 100, 400, 920, 720));
-        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(5, 100, 400, 920, 720));
-        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(6, 100, 400, 920, 720));
-        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(7, 100, 400, 920, 720));
-        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(8, 100, 400, 920, 720));
-        //
-        // ObjectRecognitionServiceInstance.detectedHandler = this.onObjectUpdated;
-        // ObjectRecognitionServiceInstance.detectedNewHandler = this.onNewObjectDetected;
-        // ObjectRecognitionServiceInstance.detectedLostHandler = this.onObjectRemoved;
-        //
-        // ObjectRecognitionServiceInstance.runDetectionLoop();
-
     }
 }
 </script>

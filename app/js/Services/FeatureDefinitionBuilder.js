@@ -27,6 +27,8 @@ export default class FeatureDefinitionBuilder {
         objDef.addSegment(dstA, dstA - error, dstA + error);
         objDef.addSegment(dstB, dstB - error, dstB + error);
         objDef.addSegment(dstC, dstC - error, dstC + error);
+        objDef.calculateAngles();
+
         return objDef;
     }
 }

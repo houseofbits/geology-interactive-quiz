@@ -1,15 +1,15 @@
 <template>
     <div class="main-view">
         <div v-for="touch in service.touches">
-            <div :style="touchPointTransform(touch)" class="touch-element"></div>
+            <div :style="touchPointTransform(touch)" class="touch-element">
+                <div class="aura"></div>
+            </div>
         </div>
     </div>
 </template>
 
 <script>
 
-import TouchPoint from "@js/Stuctures/TouchPoint";
-import ObjectRecognitionServiceInstance from '@js/Services/ObjectRecongnitionService.js';
 import TouchRegister from "@js/Services/TouchRegister";
 
 export default {
@@ -25,6 +25,8 @@ export default {
         },
     },
     mounted() {
+        this.service.region.maxx = 1080;
+        this.service.region.maxy = 768;
         this.service.registerInputHandlers();
     }
 };
@@ -51,55 +53,16 @@ export default {
         margin-left: -10px;
         margin-top: -10px;
         border-radius: 50%;
-    }
 
-    .object-element {
-        position: absolute;
-        width: 180px;
-        height: 180px;
-        border: solid 1px white;
-        left: 0;
-        top: 0;
-        margin-left: -90px;
-        margin-top: -90px;
-        border-radius: 50%;
-        color: white;
-        text-align: center;
-        line-height: 80px;
-        font-size: 20px;
-
-        &.color-1 {
-            background-color: rgba(255, 157, 0, 0.5);
-        }
-
-        &.color-2 {
-            background-color: rgba(226, 255, 0, 0.5);
-        }
-
-        &.color-3 {
-            background-color: rgba(0, 255, 66, 0.5);
-        }
-
-        &.color-4 {
-            background-color: rgba(0, 249, 255, 0.5);
-        }
-
-        &.color-5 {
-            background-color: rgba(133, 0, 255, 0.5);
-        }
-
-        &.color-6 {
-            background-color: rgba(0, 122, 255, 0.5);
-        }
-
-        &.color-7 {
-            background-color: rgba(255, 0, 176, 0.5);
-        }
-
-        &.color-8 {
-            background-color: rgba(255, 0, 0, 0.5);
+        & .aura {
+            position: absolute;
+            background-color: rgba(255, 255, 0, 0.2);
+            left: -30px;
+            right: -30px;
+            top: -30px;
+            bottom: -30px;
+            border-radius: 50%;
         }
     }
-
 }
 </style>

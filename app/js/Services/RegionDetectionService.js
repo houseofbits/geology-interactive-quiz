@@ -2,10 +2,11 @@ import DetectedObject from "@js/Stuctures/DetectedObject";
 import PointDistance from "@js/Stuctures/PointDistance";
 import TouchRegister from "@js/Services/TouchRegister";
 import BasicDetectionResult from "@js/Stuctures/BasicDetectionResult";
+import {radiansToDegrees, triangleAngles} from "@js/Helpers/Angle";
 
 const DETECTION_TIME = 3000;
 const MIN_WEIGHT_THRESHOLD = 0.75;
-const TOTAL_WEIGHT_THRESHOLD = 0.8;
+const TOTAL_WEIGHT_THRESHOLD = 0.75;
 const MEAN_THRESHOLD = 0.25;
 const COUNT_FACTOR = 0.0;
 const WEIGHT_FACTOR = 1.0;
@@ -26,6 +27,16 @@ export default class RegionDetectionService {
         this.detectStartHandler = null;
         this.detectedObjectHandler = null;
         this.detectEndHandler = null;
+        this.rawResultHandler = null;
+
+        //this.touch.touchHandler = this.touchHandler.bind(this);
+    }
+
+    touchHandler() {
+        // const detectedObjects = this.detectObjects();
+        // if (detectedObjects.length > 0) {
+        //     this.persistObjects(detectedObjects);
+        // }
     }
 
     beginDetection() {
@@ -35,7 +46,7 @@ export default class RegionDetectionService {
         if (this.detectStartHandler) {
             this.detectStartHandler();
         }
-        console.log('Begin');
+        //console.log('Begin');
     }
 
     finishDetection() {
@@ -50,14 +61,16 @@ export default class RegionDetectionService {
         if (this.detectEndHandler) {
             this.detectEndHandler();
         }
-        console.log('Failed');
+        //console.log('Failed');
     }
 
     runDetectionLoop() {
         clearTimeout(this.detectorLoopIntervalId);
         this.detectorLoopIntervalId = setTimeout(() => {
             const detectedObjects = this.detectObjects();
-            this.persistObjects(detectedObjects);
+            if (detectedObjects.length > 0) {
+                this.persistObjects(detectedObjects);
+            }
             this.runDetectionLoop();
         }, 16);
     }
@@ -101,28 +114,34 @@ export default class RegionDetectionService {
                 return 0;
             });
 
-            console.log(weighted);
+            this.detectedObjects = [];
+
+            //console.log(weighted);
 
             if (typeof weighted[0] !== "undefined") {
 
-                const matchingWeight = weighted[0];
-                const secondMatchingWeight = weighted[1] ?? null;
-
-                if (secondMatchingWeight) {
-                    const diffTotalWeight = Math.abs(secondMatchingWeight.totalWeight - matchingWeight.totalWeight);
-                    //console.log(diffTotalWeight);
-
-                    if (diffTotalWeight < 0.07 && matchingWeight.matchingWeight < 0.9) {
-                        this.failedDetection();
-                        return;
-                    }
+                if(this.rawResultHandler) {
+                    this.rawResultHandler(weighted);
                 }
+
+                const matchingWeight = weighted[0];
+                // const secondMatchingWeight = weighted[1] ?? null;
+                //
+                // if (secondMatchingWeight) {
+                //     const diffTotalWeight = Math.abs(secondMatchingWeight.totalWeight - matchingWeight.totalWeight);
+                //     //console.log(diffTotalWeight);
+                //
+                //     if (diffTotalWeight < 0.07 && matchingWeight.matchingWeight < 0.9) {
+                //         this.failedDetection();
+                //         return;
+                //     }
+                // }
 
                 if (this.detectedObjectHandler) {
                     this.detectedObjectHandler(matchingWeight.id);
                 }
 
-                console.log('Detected ' + matchingWeight.id);
+                //console.log('Detected ' + matchingWeight.id);
 
                 this.finishDetection();
                 return;
@@ -137,30 +156,37 @@ export default class RegionDetectionService {
         let weight = this.getTotalWeight(objects);
         let minWeight = this.getMinWeight(objects);
         let maxWeight = this.getMaxWeight(objects);
+        let angles = this.getAverageAngles(objects);
+
+        let angleSum = Math.abs(angles[0]) + Math.abs(angles[1]) + Math.abs(angles[2]);
 
         let meanWeight = maxWeight - minWeight;
         let count = objects.length;
 
         const matchingWeight = weight / count;
         const countWeight = count / totalCount;
-        const totalWeight = maxWeight;
-            // COUNT_FACTOR * countWeight
-            // + WEIGHT_FACTOR * matchingWeight;
+        // COUNT_FACTOR * countWeight
+        // + WEIGHT_FACTOR * matchingWeight;
 
         return {
             id: detectedObjectId,
             matchingWeight: matchingWeight.toFixed(3),
             countWeight: countWeight.toFixed(3),
-            totalWeight: totalWeight.toFixed(3),
+            totalWeight: maxWeight.toFixed(3),
             minWeight: minWeight.toFixed(3),
             maxWeight: maxWeight.toFixed(3),
             meanWeight: meanWeight.toFixed(3),
-            count: totalCount
+            count: totalCount,
+            angles,
+            angleSum
         };
     }
 
     doThresholdPass(matchingWeight) {
         if (matchingWeight.totalWeight < TOTAL_WEIGHT_THRESHOLD) {
+            return false;
+        }
+        if (matchingWeight.angleSum > 15) {
             return false;
         }
         // if (matchingWeight.minWeight < MIN_WEIGHT_THRESHOLD) {
@@ -171,6 +197,21 @@ export default class RegionDetectionService {
         // }
 
         return true;
+    }
+
+    getAverageAngles(objects) {
+        let angles = [0, 0, 0];
+        for (const object of objects) {
+            angles[0] += object.angles[0];
+            angles[1] += object.angles[1];
+            angles[2] += object.angles[2];
+        }
+
+        angles[0] = angles[0] / objects.length;
+        angles[1] = angles[1] / objects.length;
+        angles[2] = angles[2] / objects.length;
+
+        return angles;
     }
 
     /**
@@ -259,9 +300,17 @@ export default class RegionDetectionService {
                             if (i !== j && i !== k && j !== k && feature.matchSegmentLength(2, pointDist[k].distance)) {
                                 const indices = this.getIndices(i, j, k, pointDist);
                                 if (indices) {
-                                    detectedResults.push(
-                                        new BasicDetectionResult(feature.id, this.calculateWeight(pointDist, i, j, k, feature))
+                                    const res = new BasicDetectionResult();
+                                    res.defId = feature.id;
+                                    res.weight = this.calculateWeight(pointDist, i, j, k, feature);
+                                    res.angles = this.getAngleDiff(
+                                        pointDist[i].distance,
+                                        pointDist[j].distance,
+                                        pointDist[k].distance,
+                                        feature
                                     );
+
+                                    detectedResults.push(res);
                                 }
                             }
                         }
@@ -270,6 +319,15 @@ export default class RegionDetectionService {
             }
         }
         return detectedResults;
+    }
+
+    getAngleDiff(l1, l2, l3, feature) {
+        const angles = triangleAngles(l1, l2, l3);
+        return [
+            feature.angles[0] - angles[0],
+            feature.angles[1] - angles[1],
+            feature.angles[2] - angles[2]
+        ];
     }
 
     /**
@@ -284,7 +342,15 @@ export default class RegionDetectionService {
                     const _x = touchPoints[j].x - touchPoints[i].x;
                     const _y = touchPoints[j].y - touchPoints[i].y;
                     const _lsq = _x * _x + _y * _y;
-                    pointDist.push(new PointDistance(i, j, Math.sqrt(_lsq)));
+                    const _a = radiansToDegrees(Math.atan2(_x, _y));
+
+                    const pdst = new PointDistance();
+                    pdst.distance = Math.sqrt(_lsq);
+                    pdst.indexA = i;
+                    pdst.indexB = j;
+                    pdst.angle = _a;
+
+                    pointDist.push(pdst);
                 }
             }
         }
