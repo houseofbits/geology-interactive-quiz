@@ -2,7 +2,6 @@
     <div class="screen">
 
         <quiz2-slide v-for="(n, index) in 5" :index="index" :key="'slide'+index" :is-open="openIndex===index"
-                     @click="testClick"
                      @close="closeSlide">
             <template v-slot:text>
                 <div class="info">
@@ -15,6 +14,7 @@
         </quiz2-slide>
 
         <detector v-for="(a, index) in 5"
+                  :key="index"
                   :class="{visible: openIndex===null}"
                   :position-x="tagState[index].x"
                   :position-y="tagState[index].y"
@@ -106,37 +106,37 @@ export default {
                 {
                     state: null,
                     timer: null,
-                    x:25,
-                    y:150,
-                    answer:0,
+                    x: 25,
+                    y: 150,
+                    answer: 0,
                 },
                 {
                     state: null,
                     timer: null,
-                    x:230,
-                    y:250,
-                    answer:1,
+                    x: 230,
+                    y: 250,
+                    answer: 1,
                 },
                 {
                     state: null,
                     timer: null,
-                    x:435,
-                    y:150,
-                    answer:2,
+                    x: 435,
+                    y: 150,
+                    answer: 2,
                 },
                 {
                     state: null,
                     timer: null,
-                    x:640,
-                    y:250,
-                    answer:3,
+                    x: 640,
+                    y: 250,
+                    answer: 3,
                 },
                 {
                     state: null,
                     timer: null,
-                    x:845,
-                    y:150,
-                    answer:4,
+                    x: 845,
+                    y: 150,
+                    answer: 4,
                 },
             ],
             hasDetectionError: false,
@@ -190,9 +190,6 @@ export default {
             this.setTagAnswerState(2, null);
             this.setTagAnswerState(3, null);
             this.setTagAnswerState(4, null);
-        },
-        testClick(index) {
-            this.openIndex = index;
         },
         closeSlide() {
             this.requestLightState(null);

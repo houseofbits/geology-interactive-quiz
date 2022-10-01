@@ -18,6 +18,7 @@
         <quiz3-final-page :selected="selectedQuestion===8" :page-answers="pageAnswers" :class="pageClass(8)"/>
 
         <detector v-for="(a, index) in 8"
+                  :key="index"
                   :class="{visible: selectedQuestion===index}"
                   :position-x="tagPositions[index]" :position-y="480" :definitions="featureDefinitions"
                   :correct-answer="correctAnswer"
