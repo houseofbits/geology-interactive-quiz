@@ -23,7 +23,7 @@ function rshutdown() {
     echo "Shutdown 10.10.30.213"
     ssh lvdm@10.10.30.213 "sudo -S shutdown"        
 }
-
+    
 function deploy(){
 
     if ping -c1 10.10.30.211 &> /dev/null
