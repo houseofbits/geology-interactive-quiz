@@ -4,7 +4,7 @@ import TouchRegister from "@js/Services/TouchRegister";
 import BasicDetectionResult from "@js/Stuctures/BasicDetectionResult";
 import {radiansToDegrees, triangleAngles} from "@js/Helpers/Angle";
 
-const DETECTION_TIME = 3000;
+const DETECTION_TIME = 2000;
 const MIN_WEIGHT_THRESHOLD = 0.75;
 const TOTAL_WEIGHT_THRESHOLD = 0.75;
 const MEAN_THRESHOLD = 0.25;
@@ -28,15 +28,19 @@ export default class RegionDetectionService {
         this.detectedObjectHandler = null;
         this.detectEndHandler = null;
         this.rawResultHandler = null;
+        this.isDisabled = false;
 
         //this.touch.touchHandler = this.touchHandler.bind(this);
     }
 
-    touchHandler() {
-        // const detectedObjects = this.detectObjects();
-        // if (detectedObjects.length > 0) {
-        //     this.persistObjects(detectedObjects);
-        // }
+    setDisabled(disabled) {
+        this.isDisabled = disabled;
+        clearTimeout(this.detectionTimer);
+        clearTimeout(this.detectorLoopIntervalId);
+
+        if (!this.isDisabled) {
+            this.runDetectionLoop();
+        }
     }
 
     beginDetection() {
@@ -66,13 +70,15 @@ export default class RegionDetectionService {
 
     runDetectionLoop() {
         clearTimeout(this.detectorLoopIntervalId);
-        this.detectorLoopIntervalId = setTimeout(() => {
-            const detectedObjects = this.detectObjects();
-            if (detectedObjects.length > 0) {
-                this.persistObjects(detectedObjects);
-            }
-            this.runDetectionLoop();
-        }, 16);
+        if (!this.isDisabled) {
+            this.detectorLoopIntervalId = setTimeout(() => {
+                const detectedObjects = this.detectObjects();
+                if (detectedObjects.length > 0) {
+                    this.persistObjects(detectedObjects);
+                }
+                this.runDetectionLoop();
+            }, 16);
+        }
     }
 
     /**
@@ -91,6 +97,11 @@ export default class RegionDetectionService {
 
     processDetectedObjects() {
 
+        if (this.isDisabled) {
+            this.detectedObjects = [];
+            return;
+        }
+
         let isMeanValueThresholdFail = false;
 
         if (this.detectedObjects.length > 0) {
@@ -101,9 +112,9 @@ export default class RegionDetectionService {
                 const objects = this.detectedObjects.filter((object) => object.defId === detectedObjectId);
                 if (objects.length) {
                     const obj = this.createObject(totalCount, detectedObjectId, objects);
-                    if (this.doThresholdPass(obj)) {
-                        weighted.push(obj);
-                    }
+                    //if (this.doThresholdPass(obj)) {
+                    weighted.push(obj);
+                   // }
                     //console.log(obj);
                 }
             }
@@ -219,7 +230,7 @@ export default class RegionDetectionService {
      * @returns {number[]}
      */
     getDetectedIds(objects) {
-        let detectedObjectIds = this.detectedObjects.map((item) => item.defId);
+        let detectedObjectIds = objects.map((item) => item.defId);
         detectedObjectIds = [...new Set(detectedObjectIds)];
 
         return detectedObjectIds;
@@ -272,7 +283,15 @@ export default class RegionDetectionService {
      * @returns {BasicDetectionResult[]}
      */
     detectObjects() {
-        const pointDistances = this.calculatePointDistances(this.touch.touches);
+        return this.detectObjectFromPoints(this.touch.touches);
+    }
+
+    /**
+     * @param {TouchPoint[]} touchPoints
+     * @returns {BasicDetectionResult[]}
+     */
+    detectObjectFromPoints(touchPoints) {
+        const pointDistances = this.calculatePointDistances(touchPoints);
         let objects = [];
         for (const def of this.featureDefinitions) {
             const result = this.findFeatureInDistanceList(def, pointDistances);

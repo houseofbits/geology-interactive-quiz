@@ -1,8 +1,6 @@
 {
     "quiz1": {
-        "AAnswerId":4,
-        "BAnswerId":2,
-        "CAnswerId":6
+        "correct":[2,4,6]
     },
     "quiz2": {
         "endpointUrl": "http://10.10.30.210:8888/set-port-pins",
@@ -38,8 +36,8 @@
             4,
             5,
             6,
-            7,
-            8
+            8,
+            7
         ]
     },
     "objectDefinitions1": [
