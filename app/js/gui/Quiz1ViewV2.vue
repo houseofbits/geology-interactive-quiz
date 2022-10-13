@@ -178,50 +178,62 @@ export default {
     }
 
     .main-title {
-        display: inline-block;
         color: gray;
         position: absolute;
         font-weight: bold;
         width: 1024px;
         left: 0;
-        height: 120px;
+        height: 65px;
         text-align: center;
         font-size: 38px;
-        line-height: 80px;
         background-color: white;
         color: #606060;
+        transition: all linear 500ms;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-left: 16px;
+        padding-right: 16px;
+        border-bottom: 1px solid lightgray;
     }
 
-    .detector-info {
-        display: flex;
-        align-content: flex-end;
-        justify-content: center;
-        flex-direction: row;
-        align-items: flex-end;
+    .detector-info-block {
         position: absolute;
         top: 35px;
-        left: 0;
-        right: 0;
-        padding: 6px;
+        width: 100%;
+        height: auto;
 
-        & .icon {
-            width: 70px;
-            height: 70px;
-            margin-right: 8px;
-            background-size: cover;
+        & .detector-info {
+            display: flex;
+            align-content: flex-end;
+            justify-content: center;
+            flex-direction: row;
+            align-items: center;
+            position: absolute;
+            top: 35px;
+            left: 0;
+            right: 0;
+            padding: 6px;
 
-            &.hand-icon-1 {
-                background-image: url('@images/hand-icon-1.png');
+            & .icon {
+                width: 70px;
+                height: 70px;
+                margin-right: 8px;
+                background-size: cover;
+
+                &.hand-icon-1 {
+                    background-image: url('@images/hand-icon-1.png');
+                }
+
+                &.hand-icon-2 {
+                    background-image: url('@images/hand-icon-2.png');
+                }
             }
 
-            &.hand-icon-2 {
-                background-image: url('@images/hand-icon-2.png');
+            & .text {
+                font-size: 18px;
+                font-weight: normal;
             }
-        }
-
-        & .text {
-            font-size: 18px;
-            font-weight: normal;
         }
     }
 

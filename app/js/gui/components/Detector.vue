@@ -4,13 +4,13 @@
         <div class="loading-ring">
             <div class="ring-layer"></div>
         </div>
-        <div class="inner-default" :class="{active: defaultActive}">
+        <div class="inner-default" :class="{active: defaultActive, disabled: disabled}">
             <i class="far fa-question-circle"></i>
         </div>
-        <div class="inner-incorrect" :class="{active: incorrect}">
+        <div class="inner-incorrect" :class="{active: incorrect, disabled: disabled}">
             <i class="far fa-times-circle"></i>
         </div>
-        <div class="inner-correct" :class="{active: correct}">
+        <div class="inner-correct" :class="{active: correct, disabled: disabled}">
             <i class="far fa-check-circle"></i>
         </div>
 
@@ -34,8 +34,8 @@ export default {
             type: Number,
             required: true
         },
-        correctAnswer: {
-            type: Number,
+        disabled: {
+            type: Boolean,
             required: true
         },
         state: {
@@ -52,6 +52,11 @@ export default {
             processing: false,
             detector: new RegionDetectionService()
         };
+    },
+    watch: {
+        disabled(value) {
+            this.detector.setDisabled(value);
+        }
     },
     computed: {
         style() {
@@ -82,16 +87,12 @@ export default {
         },
         detectedObjectHandler(id) {
             if (this.processing && !this.incorrect && !this.correct) {
-                if (id === this.correctAnswer) {
-                    this.emitState(AnswerState.CORRECT);
-                } else {
-                    this.emitState(AnswerState.INCORRECT);
-                }
+                this.emitState(id);
                 this.processing = false;
             }
         },
-        emitState(state) {
-            this.$emit('detected', state);
+        emitState(id) {
+            this.$emit('detected', id);
         },
         emitFailed() {
             this.$emit('failed');
@@ -113,6 +114,13 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+
+@keyframes question-mark {
+    0%   {transform: scale(1.0);}
+    30%   {transform: scale(1.6);}
+    100%   {transform: scale(1.0);}
+}
+
 .tag {
     pointer-events: none;
     z-index: 1;
@@ -195,8 +203,24 @@ export default {
             -webkit-text-fill-color: transparent;
         }
 
+        &:not(.disabled) {
+            i {
+                animation-name: question-mark;
+                animation-duration: 1000ms;
+                animation-iteration-count: infinite;
+            }
+        }
+
         &.active {
             opacity: 1;
+
+            &.disabled {
+                opacity: 0.8;
+            }
+        }
+
+        &.disabled {
+            filter: grayscale(100);
         }
     }
 
@@ -229,6 +253,14 @@ export default {
             i {
                 filter: drop-shadow(0 3px 4px green);
             }
+
+            &.disabled {
+                opacity: 0.8;
+            }
+        }
+
+        &.disabled {
+            filter: grayscale(100);
         }
     }
 
@@ -261,6 +293,14 @@ export default {
             i {
                 filter: drop-shadow(0 3px 4px green);
             }
+
+            &.disabled {
+                opacity: 0.8;
+            }
+        }
+
+        &.disabled {
+            filter: grayscale(100);
         }
     }
 }

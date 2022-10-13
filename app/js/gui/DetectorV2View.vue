@@ -56,6 +56,7 @@ import RegionDetectionService from '@js/Services/RegionDetectionService';
 import FeatureDefinitionBuilder from "@js/Services/FeatureDefinitionBuilder";
 import Config from "@json/config.json";
 import Detector from "@js/gui/components/Detector.vue";
+import SimilarFeatureFinder from "@js/Services/SimilarFeatureFinder";
 
 export default {
     name: 'DetectorView',
@@ -65,9 +66,10 @@ export default {
             state1: null,
             state2: null,
             detector: new RegionDetectionService(),
-            featureDefinitions: FeatureDefinitionBuilder.buildDefinitionsFromConfiguration(Config.objectDefinitions1, 15),
+            featureDefinitions: FeatureDefinitionBuilder.buildDefinitionsFromConfiguration(Config.objectDefinitions3, 15),
             results: null,
-            isDetectionStarted: false
+            isDetectionStarted: false,
+            similarFeatureFinder: new SimilarFeatureFinder()
         };
     },
     methods: {
@@ -89,6 +91,12 @@ export default {
         this.detector.rawResultHandler = this.resultHandler;
         this.detector.detectStartHandler = this.beginDetection;
         this.detector.runDetectionLoop();
+
+        this.similarFeatureFinder.setFeatures(this.featureDefinitions);
+
+        for (let i = 0; i < this.featureDefinitions.length; i++) {
+            this.similarFeatureFinder.findSimilar(i);
+        }
     }
 };
 </script>

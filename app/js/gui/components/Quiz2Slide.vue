@@ -11,9 +11,9 @@
             <slot name="text"/>
         </div>
 
-        <div class="close-button" @click="close">
-            <i class="fas fa-times"></i>
-        </div>
+<!--        <div class="close-button" @click="close">-->
+<!--            <i class="fas fa-times"></i>-->
+<!--        </div>-->
     </div>
 </template>
 
@@ -45,7 +45,7 @@ export default {
     },
     methods: {
         open() {
-            this.$emit('click', this.index);
+            this.$emit('open', this.index);
         },
         close() {
             this.$emit('close');
@@ -266,7 +266,7 @@ export default {
         }
 
         .main-image {
-            transform: scale(0.9) translate(30px, 160px);
+            transform: scale(0.9) translate(-30px, 200px);
         }
 
         &.active .main-image {

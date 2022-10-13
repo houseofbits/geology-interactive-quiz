@@ -2,10 +2,21 @@
     <div class="screen">
 
         <quiz2-slide v-for="(n, index) in 5" :index="index" :key="'slide'+index" :is-open="openIndex===index"
+                     @open="openSlideManually(index)"
                      @close="closeSlide">
             <template v-slot:text>
                 <div class="info">
-                    <h1>{{ text[index].title }}</h1>
+                    <div class="slide-header">
+                        <div>{{ text[index].title }}</div>
+
+                        <div class="main-buttons-block">
+                            <div class="reset-button" @click="closeSlide">
+                                <span>Aizvērt</span>
+                                <i class="fas fa-times"></i>
+                            </div>
+                        </div>
+
+                    </div>
                     <ul>
                         <li v-for="desc in text[index].description">{{ desc }}</li>
                     </ul>
@@ -13,25 +24,52 @@
             </template>
         </quiz2-slide>
 
-        <detector v-for="(a, index) in 5"
-                  :key="index"
-                  :class="{visible: openIndex===null}"
-                  :position-x="tagState[index].x"
-                  :position-y="tagState[index].y"
-                  :definitions="featureDefinitions"
-                  :correct-answer="tagState[index].answer"
-                  :state="tagState[index].state"
-                  @detected="(s) => setTagAnswerState(index, s)"
-                  @failed="failedDetection"/>
+        <detector
+            v-for="(a, index) in 5"
+            :key="index"
+            :class="{visible: openIndex===null && !useButtons}"
+            :position-x="tagState[index].x"
+            :position-y="tagState[index].y"
+            :definitions="featureDefinitions"
+            :disabled="isDisabled(index)"
+            :state="answerState[index]"
+            @detected="(s) => setTagAnswerState(index, s)"
+            @failed="failedDetection"/>
 
-        <div v-for="(a, index) in 5" class="point" :data-index="index" :class="{visible: !openIndex}"
-             :key="'line'+index">
+        <div
+            v-for="(a, index) in 5" class="point"
+            :data-index="index"
+            :class="{visible: !openIndex && !useButtons}"
+            :key="'line'+index"
+        >
             <div class="line"></div>
         </div>
 
-        <div class="main-title" :class="{visible: !openIndex}">
-            <span>Atpazīsti vietas</span>
+        <div :class="{visible: !openIndex && useButtons}" class="answers-block">
+            <div @click="openSlideManually(0)">NOGĀZE</div>
+            <div @click="openSlideManually(1)">PAKĀJE</div>
+            <div @click="openSlideManually(2)">DELTA</div>
+            <div @click="openSlideManually(3)">ESTUĀRS</div>
+            <div @click="openSlideManually(4)">DELTAS NOGĀZE</div>
+        </div>
 
+        <div class="main-title">
+            <div>
+                <span>Atpazīsti vietas</span>
+            </div>
+
+            <div class="main-buttons-block">
+                <div class="variants-button" @click="useButtons=!useButtons">
+                    {{ useButtons ? 'Izmantot elementus' : 'Skatīt atbildes' }}
+                </div>
+                <div class="reset-button" @click="reset">
+                    <span>No sākuma</span>
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+            </div>
+        </div>
+
+        <div v-if="!useButtons" class="detector-info-block">
             <div v-if="hasDetectionError" class="detector-info">
                 <div class="icon hand-icon-2"></div>
                 <div class="text">
@@ -40,43 +78,26 @@
             </div>
             <div v-else class="detector-info">
                 <div class="icon hand-icon-1"></div>
-                <div class="text">Novieto atbilstošo elementu sarkanajā aplī. Turi to vismaz 2 sekundes, kamēr notiek
+                <div class="text">Novieto atbilstošo elementu sarkanajā aplī. Turi to vismaz 2 sekundes, kamēr
+                    notiek
                     atpazīšana.
                 </div>
             </div>
-
         </div>
+
+        <answer-modal :visible="isAnswerModalVisible" :answers="modalAnswers" @selected="selectAnswerFromModal"/>
 
         <div class="container offscreen">
             <div class="row">
-                <div class="col-lg-6 text-center">
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(0,true)">Correct #1
-                    </button>
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(1,true)">Correct #2
-                    </button>
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(2,true)">Correct #3
-                    </button>
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(3,true)">Correct #4
-                    </button>
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setDebugState(4,true)">Correct #5
-                    </button>
-                </div>
-                <div class="col-lg-6 text-center">
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(0,false)">Wrong #1
-                    </button>
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(1,false)">Wrong #2
-                    </button>
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(2,false)">Wrong #3
-                    </button>
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(3,false)">Wrong #4
-                    </button>
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setDebugState(4,false)">Wrong #5
+                <div v-for="(n,index) in 5" class="col-lg-2 text-center">
+                    <button v-for="answerId in Object.keys(answerNames)"
+                            class="btn btn-lg w-100 overflow-hidden btn-success mt-2 btn-block mx-1"
+                            @click="setAnswer(index, answerId)">
+                        {{ answerNames[answerId] }}
                     </button>
                 </div>
             </div>
         </div>
-
-
     </div>
 </template>
 
@@ -85,23 +106,40 @@
 import axios from 'axios';
 import Quiz2Slide from "./components/Quiz2Slide.vue";
 import TextLV from "@json/quiz2-text-lv.json";
-import ObjectRecognitionServiceInstance from '@js/Services/ObjectRecongnitionService.js';
 import Config from "@json/config.json";
 import {AnswerState} from "@js/Stuctures/Constants.js";
 import FeatureDefinitionBuilder from "@js/Services/FeatureDefinitionBuilder";
 import Detector from "@js/gui/components/Detector.vue";
+import AnswerModal from "@js/gui/components/AnswerModal.vue";
+import {getSimilarFeatureIds, hasSimilarFeatures} from "@js/Helpers/SimilarFeatures.js";
 
 export default {
     name: "Quiz2View",
     components: {
+        AnswerModal,
         Quiz2Slide,
         Detector
     },
     data() {
         return {
             featureDefinitions: FeatureDefinitionBuilder.buildDefinitionsFromConfiguration(Config.objectDefinitions2, 15),
-            answerIndex: null,
             openIndex: null,
+            answerState: [
+                null,
+                null,
+                null,
+                null,
+                null
+            ],
+            correctAnswers: [
+                1,
+                2,
+                3,
+                5,
+                7
+            ],
+
+
             tagState: [
                 {
                     state: null,
@@ -141,16 +179,18 @@ export default {
             ],
             hasDetectionError: false,
             detectionErrorTimeout: null,
+            useButtons: false,
+            isAnswerModalVisible: false,
+            modalAnswers: [],
+            answerNames: {
+                1: "NOGĀZE",
+                2: "PAKĀJE",
+                3: "DELTA",
+                5: "ESTUĀRS",
+                7: "DELTAS NOGĀZE",
+            },
+            selectedIndex: null,
         };
-    },
-    watch: {
-        answerIndex(id) {
-            if (id === null) {
-                return;
-            }
-            this.openIndex = id;
-            this.requestLightState(this.openIndex);
-        }
     },
     computed: {
         text() {
@@ -158,8 +198,12 @@ export default {
         },
     },
     methods: {
-        setDebugState(index, state) {
-            this.setTagAnswerState(index, state ? AnswerState.CORRECT : AnswerState.INCORRECT);
+        reset() {
+            this.$set(this.answerState, 0, null);
+            this.$set(this.answerState, 1, null);
+            this.$set(this.answerState, 2, null);
+            this.$set(this.answerState, 3, null);
+            this.$set(this.answerState, 4, null);
         },
         isTagCorrect(index) {
             return this.tagState[index].state === AnswerState.CORRECT;
@@ -176,26 +220,15 @@ export default {
             }
         },
         openSlide(index) {
-            this.answerIndex = (this.tagState[index].state === AnswerState.CORRECT) ? index : null;
+            this.openIndex = index;
 
-            clearTimeout(this.tagState[index].timer);
-
-            this.tagState[index].timer = setTimeout(() => {
-                this.setTagAnswerState(index, null);
-            }, 5000);
-        },
-        clearTagState() {
-            this.setTagAnswerState(0, null);
-            this.setTagAnswerState(1, null);
-            this.setTagAnswerState(2, null);
-            this.setTagAnswerState(3, null);
-            this.setTagAnswerState(4, null);
+            this.requestLightState(index);
         },
         closeSlide() {
             this.requestLightState(null);
+
+            this.$set(this.answerState, this.openIndex, null);
             this.openIndex = null;
-            this.answerIndex = null;
-            this.clearTagState();
         },
         async requestPortPinsWithParams(params) {
             try {
@@ -226,30 +259,64 @@ export default {
             clearTimeout(this.detectionErrorTimeout);
             this.detectionErrorTimeout = setTimeout(() => this.hasDetectionError = false, 5000);
         },
+
+        setState(index, answerId) {
+            const state = answerId === this.correctAnswers[index] ? AnswerState.CORRECT : AnswerState.INCORRECT;
+            this.$set(this.answerState, index, state);
+            if (state === AnswerState.CORRECT) {
+                this.openIndex = index;
+            }
+        },
+        setAnswer(which, answerId) {
+            if (this.answerState[which] === null) {
+                if (this.shouldShowModalWithAnswers(answerId)) {
+                    this.selectedIndex = which;
+                    this.showModalWithAnswers(answerId);
+                } else {
+                    this.setState(which, answerId);
+                }
+            }
+        },
+        showModalWithAnswers(answerId) {
+            this.modalAnswers = [];
+            for (const id of getSimilarFeatureIds(answerId)) {
+                if (this.answerNames.hasOwnProperty(id)) {
+                    this.modalAnswers.push({
+                        id,
+                        name: this.answerNames[id]
+                    });
+                }
+            }
+            this.modalAnswers.sort(function (a, b) {
+                return Math.random() - 0.5;
+            });
+            this.isAnswerModalVisible = true;
+        },
+        shouldShowModalWithAnswers(answerId) {
+            return hasSimilarFeatures(answerId);
+        },
+        selectAnswerFromModal(answerId) {
+            this.setState(this.selectedIndex, answerId);
+            this.isAnswerModalVisible = false;
+            this.selectedIndex = null;
+        },
+        isDisabled(index) {
+            if (this.openIndex !== null || this.useButtons) {
+                return true;
+            }
+            return this.selectedIndex !== null && this.selectedIndex !== index;
+        },
+        openSlideManually(index) {
+            if (this.useButtons) {
+                this.openSlide(index);
+            }
+        }
     },
     mounted() {
-
         //To disable context menu
         window.addEventListener("contextmenu", function (e) {
             e.preventDefault();
         });
-
-        this.clearTagState();
-
-        // ObjectRecognitionServiceInstance.setObjectDefinitions(Config.objectDefinitions2);
-        //
-        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(0, 0, 0, 203, 350));
-        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(1, 203, 0, 407, 450));
-        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(2, 407, 0, 612, 350));
-        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(3, 612, 0, 818, 450));
-        // ObjectRecognitionServiceInstance.addRegion(new DetectionFeature(4, 818, 0, 1024, 350));
-        //
-        // ObjectRecognitionServiceInstance.detectedHandler = this.onObjectUpdated;
-        // ObjectRecognitionServiceInstance.detectedNewHandler = this.onNewObjectDetected;
-        // ObjectRecognitionServiceInstance.detectedLostHandler = this.onObjectRemoved;
-        //
-        // ObjectRecognitionServiceInstance.runDetectionLoop();
-
     }
 }
 </script>
@@ -271,56 +338,109 @@ export default {
     }
 
     .main-title {
-        display: inline-block;
-        color: gray;
         position: absolute;
         font-weight: bold;
         width: 1024px;
         left: 0;
-        height: 120px;
+        height: 65px;
         text-align: center;
         font-size: 38px;
-        line-height: 80px;
         background-color: white;
         color: #606060;
-        opacity: 0.0;
-        transition: all linear 500ms;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-left: 16px;
+        padding-right: 16px;
+        border-bottom: 1px solid lightgray;
 
         &.visible {
             opacity: 1.0;
         }
     }
 
-    .detector-info {
+    .main-buttons-block {
         display: flex;
-        align-content: flex-end;
-        justify-content: center;
-        flex-direction: row;
-        align-items: flex-end;
-        position: absolute;
-        top: 35px;
-        left: 0;
-        right: 0;
-        padding: 6px;
 
-        & .icon {
-            width: 70px;
-            height: 70px;
-            margin-right: 8px;
-            background-size: cover;
+        .variants-button {
+            font-size: 18px;
+            margin-right: 36px;
+            display: flex;
+            align-items: center;
 
-            &.hand-icon-1 {
-                background-image: url('@images/hand-icon-1.png');
-            }
+            &:hover {
+                color: #2d2d2d;
 
-            &.hand-icon-2 {
-                background-image: url('@images/hand-icon-2.png');
+                i {
+                    color: #2d2d2d;
+                }
             }
         }
 
-        & .text {
-            font-size: 18px;
-            font-weight: normal;
+        .reset-button {
+            width: auto;
+            height: 32px;
+            //z-index: 50;
+            display: flex;
+            align-items: center;
+
+            i {
+                font-size: 32px;
+                color: #606060;
+            }
+
+            span {
+                font-size: 18px;
+                margin-right: 8px;
+            }
+
+            &:hover {
+                color: #2d2d2d;
+
+                i {
+                    color: #2d2d2d;
+                }
+            }
+        }
+    }
+
+    .detector-info-block {
+        position: absolute;
+        top: 30px;
+        width: 100%;
+        height: auto;
+
+        & .detector-info {
+            display: flex;
+            align-content: flex-end;
+            justify-content: center;
+            flex-direction: row;
+            align-items: center;
+            position: absolute;
+            top: 35px;
+            left: 0;
+            right: 0;
+            padding: 6px;
+
+            & .icon {
+                width: 70px;
+                height: 70px;
+                margin-right: 8px;
+                background-size: cover;
+
+                &.hand-icon-1 {
+                    background-image: url('@images/hand-icon-1.png');
+                }
+
+                &.hand-icon-2 {
+                    background-image: url('@images/hand-icon-2.png');
+                }
+            }
+
+            & .text {
+                font-size: 18px;
+                font-weight: normal;
+            }
         }
     }
 
@@ -568,19 +688,68 @@ export default {
 }
 
 .info {
-    background-color: rgba(255, 255, 255, 0.6);
-    margin: 50px;
-    color: black;
-    padding: 20px;
+    background-color: rgba(255, 255, 255, 1);
 
-    h1 {
-        font-size: 50px;
+    & .slide-header {
+        color: #606060;
+        padding-left: 16px;
+        padding-right: 16px;
+        font-size: 38px;
+        font-weight: bold;
+        height: 65px;
+        border-bottom: 1px solid lightgray;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    & ul {
+        background-color: rgba(255,255,255,0.8);
+        position: absolute;
+        top:240px;
+        left:50px;
+        right:50px;
+        height: auto;
+        padding: 30px;
     }
 
     ul li {
         font-size: 23px;
-        line-height: 23px;
-        padding-top: 25px;
+        line-height: 26px;
+        padding-bottom: 25px;
+        color: #606060;
+        list-style-type: none;
+
+        &:last-child {
+            padding-bottom: 0;
+        }
+    }
+}
+
+.answers-block {
+    position: absolute;
+    width: 1024px;
+    height: auto;
+    display: flex;
+    bottom: 15px;
+    justify-content: space-around;
+    transition: all linear 500ms;
+    opacity: 0;
+
+    &.visible {
+        opacity: 1;
+    }
+
+    div {
+        color: white;
+        width: 100%;
+        flex-basis: 0;
+        font-size: 32px;
+        line-height: 32px;
+        font-weight: bold;
+        text-align: center;
+        text-shadow: 0 0 6px rgba(0, 0, 0, 0.7);
+        margin-bottom: 35px;
     }
 }
 </style>

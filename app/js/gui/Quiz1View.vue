@@ -4,6 +4,13 @@
         <div class="main-title">
             <span>Izvēlies pareizo iezi</span>
 
+            <div class="reset-button" @click="reset">
+                <span>No sākuma</span>
+                <i class="fas fa-sync-alt"></i>
+            </div>
+        </div>
+
+        <div class="detector-info-block">
             <div v-if="hasDetectionError" class="detector-info">
                 <div class="icon hand-icon-2"></div>
                 <div class="text">
@@ -12,27 +19,23 @@
             </div>
             <div v-else class="detector-info">
                 <div class="icon hand-icon-1"></div>
-                <div class="text">Novieto atbilstošo elementu sarkanajā aplī. Turi to vismaz 2 sekundes, kamēr notiek
+                <div class="text">Novieto atbilstošo elementu sarkanajā aplī. Turi to vismaz 2 sekundes, kamēr
+                    notiek
                     atpazīšana.
                 </div>
             </div>
-
-            <div class="reset-button" @click="reset">
-                <span>No sākuma</span>
-                <i class="fas fa-sync-alt"></i>
-            </div>
         </div>
 
-        <detector :position-x="800" :position-y="150" :definitions="featureDefinitions" :correct-answer="4"
-                  :state="state1" @detected="(s) => this.setState1(s)" @failed="failedDetection"/>
+        <detector :position-x="800" :position-y="150" :definitions="featureDefinitions" :disabled="false"
+                  :state="answerState[0]" @detected="(s) => this.setAnswer(0, s)" @failed="failedDetection"/>
 
-        <detector :position-x="60" :position-y="370" :definitions="featureDefinitions" :correct-answer="2"
-                  :state="state2" @detected="(s) => this.setState2(s)" @failed="failedDetection"/>
+        <detector :position-x="60" :position-y="370" :definitions="featureDefinitions" :disabled="isBDisabled"
+                  :state="answerState[1]" @detected="(s) => this.setAnswer(1, s)" @failed="failedDetection"/>
 
-        <detector :position-x="800" :position-y="550" :definitions="featureDefinitions" :correct-answer="6"
-                  :state="state3" @detected="(s) => this.setState3(s)" @failed="failedDetection"/>
+        <detector :position-x="800" :position-y="550" :definitions="featureDefinitions" :disabled="isCDisabled"
+                  :state="answerState[2]" @detected="(s) => this.setAnswer(2, s)" @failed="failedDetection"/>
 
-        <div class="question-row column1" :class="{correct: state1Correct, wrong: state1Incorrect}">
+        <div class="question-row column1" :class="{correct: isACorrect, wrong: isAIncorrect}">
             <div class="answer">OĻI</div>
             <div class="question-text">Iezis veidojies
                 dēdēšanas procesā kalnu masīvu nogāzēs un kalnu upēs. Iežu
@@ -40,7 +43,7 @@
             </div>
         </div>
 
-        <div class="question-row column2" :class="{correct: state2Correct, wrong: state2Incorrect}">
+        <div class="question-row column2" :class="{correct: isBCorrect, wrong: isBIncorrect, disabled: isBDisabled}">
             <div class="answer">SMILŠAKMENS</div>
             <div class="question-text">Iezis ir veidojies
                 ilgstoša ūdens transporta rezultātā. Ieža graudi ir
@@ -48,7 +51,7 @@
             </div>
         </div>
 
-        <div class="question-row column3" :class="{correct: state3Correct, wrong: state3Incorrect}">
+        <div class="question-row column3" :class="{correct: isCCorrect, wrong: isCIncorrect, disabled: isCDisabled}">
             <div class="answer">MĀLS</div>
             <div class="question-text">Iezis veidojies,
                 uzkrājoties ļoti sīkām iežu daļiņām ūdens tilpnēs mierīgos
@@ -56,31 +59,30 @@
             </div>
         </div>
 
+        <answer-modal :visible="isAnswerModalVisible" :answers="modalAnswers" @selected="selectAnswerFromModal"/>
+
         <div class="container offscreen">
             <div class="row">
-                <div class="col-lg-6 text-center">
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setState1(AnswerState.CORRECT)">
-                        Correct #1
-                    </button>
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setState2(AnswerState.CORRECT)">
-                        Correct #2
-                    </button>
-                    <button class="btn btn-lg btn-success mt-2 btn-block" @click="setState3(AnswerState.CORRECT)">
-                        Correct #3
+                <div class="col-lg-12">
+                    <button v-for="answerId in Object.keys(answerNames)" class="btn btn-lg btn-success mt-2 btn-block mx-1"
+                            @click="setAnswer(0, answerId)">
+                        {{ answerNames[answerId] }}
                     </button>
                 </div>
-                <div class="col-lg-6 text-center">
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setState1(AnswerState.INCORRECT)">Wrong
-                        #1
+                <div class="col-lg-12">
+                    <button v-for="answerId in Object.keys(answerNames)" class="btn btn-lg btn-success mt-2 btn-block mx-1"
+                            @click="setAnswer(1, answerId)">
+                        {{ answerNames[answerId] }}
                     </button>
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setState2(AnswerState.INCORRECT)">Wrong
-                        #2
-                    </button>
-                    <button class="btn btn-lg btn-danger mt-2 btn-block" @click="setState3(AnswerState.INCORRECT)">Wrong
-                        #3
+                </div>
+                <div class="col-lg-12">
+                    <button v-for="answerId in Object.keys(answerNames)" class="btn btn-lg btn-success mt-2 btn-block mx-1"
+                            @click="setAnswer(2, answerId)">
+                        {{ answerNames[answerId] }}
                     </button>
                 </div>
             </div>
+
         </div>
 
     </div>
@@ -92,79 +94,132 @@ import {AnswerState} from "@js/Stuctures/Constants.js";
 import Config from "@json/config.json";
 import Detector from "@js/gui/components/Detector.vue";
 import FeatureDefinitionBuilder from "@js/Services/FeatureDefinitionBuilder";
+import AnswerModal from "@js/gui/components/AnswerModal.vue";
+import {getSimilarFeatureIds, hasSimilarFeatures} from "@js/Helpers/SimilarFeatures";
 
 export default {
     name: "Quiz1View",
     components: {
+        AnswerModal,
         Detector
     },
     data() {
         return {
             AnswerState: AnswerState,
-            state1: null,
-            state2: null,
-            state3: null,
+            answerState: [
+                null,
+                null,
+                null
+            ],
             resetTimeout: null,
             featureDefinitions: FeatureDefinitionBuilder.buildDefinitionsFromConfiguration(Config.objectDefinitions1, 15),
             hasDetectionError: false,
             detectionErrorTimeout: null,
+            isAnswerModalVisible: false,
+            modalAnswers: [],
+            answerNames: {
+                1: "MĀLS",
+                2: "ŠĶEMBAS",
+                3: "SMILŠAKMENS",
+                4: "GRANTS",
+                5: "OĻI",
+                6: "ZVIRGZDI",
+            },
         };
     },
     computed: {
-        state1Correct() {
-            return this.state1 === AnswerState.CORRECT;
+        isACorrect() {
+            return this.answerState[0] === AnswerState.CORRECT;
         },
-        state1Incorrect() {
-            return this.state1 === AnswerState.INCORRECT;
+        isAIncorrect() {
+            return this.answerState[0] === AnswerState.INCORRECT;
         },
-
-        state2Correct() {
-            return this.state2 === AnswerState.CORRECT;
+        isBCorrect() {
+            return this.answerState[1] === AnswerState.CORRECT;
         },
-        state2Incorrect() {
-            return this.state2 === AnswerState.INCORRECT;
+        isBIncorrect() {
+            return this.answerState[1] === AnswerState.INCORRECT;
         },
-
-        state3Correct() {
-            return this.state3 === AnswerState.CORRECT;
+        isCCorrect() {
+            return this.answerState[2] === AnswerState.CORRECT;
         },
-        state3Incorrect() {
-            return this.state3 === AnswerState.INCORRECT;
+        isCIncorrect() {
+            return this.answerState[2] === AnswerState.INCORRECT;
         },
+        isAActive() {
+            return this.answerState[0] === null;
+        },
+        isBActive() {
+            return this.answerState[1] === null;
+        },
+        isCActive() {
+            return this.answerState[2] === null;
+        },
+        isBDisabled() {
+            return this.isAActive;
+        },
+        isCDisabled() {
+            return this.isBActive;
+        }
     },
     methods: {
         reset() {
-            this.state1 = null;
-            this.state2 = null;
-            this.state3 = null;
+            this.$set(this.answerState, 0, null);
+            this.$set(this.answerState, 1, null);
+            this.$set(this.answerState, 2, null);
         },
         updateResetTimer() {
             clearTimeout(this.resetTimeout);
             this.resetTimeout = setTimeout(this.reset, 60000);
         },
-        setState1(s) {
-            if (this.state1 === null) {
-                this.state1 = s
-                this.updateResetTimer();
+        setAnswer(which, answerId) {
+            if (this.answerState[which] === null) {
+                if (this.shouldShowModalWithAnswers(answerId)) {
+                    this.showModalWithAnswers(answerId);
+                } else {
+                    this.setState(which, answerId);
+                }
             }
         },
-        setState2(s) {
-            if (this.state2 === null) {
-                this.state2 = s
-                this.updateResetTimer();
-            }
-        },
-        setState3(s) {
-            if (this.state3 === null) {
-                this.state3 = s
-                this.updateResetTimer();
-            }
+        setState(which, answerId) {
+            const correctAnswerId = Config.quiz1.correct[which];
+            const state = answerId === correctAnswerId ? AnswerState.CORRECT : AnswerState.INCORRECT;
+            this.$set(this.answerState, which, state);
         },
         failedDetection() {
             this.hasDetectionError = true;
             clearTimeout(this.detectionErrorTimeout);
             this.detectionErrorTimeout = setTimeout(() => this.hasDetectionError = false, 5000);
         },
+        showModalWithAnswers(answerId) {
+            this.modalAnswers = [];
+            for (const id of getSimilarFeatureIds(answerId)) {
+                if (this.answerNames.hasOwnProperty(id)) {
+                    this.modalAnswers.push({
+                        id,
+                        name: this.answerNames[id]
+                    });
+                }
+            }
+            this.modalAnswers.sort(function (a, b) {
+                return Math.random() - 0.5;
+            });
+
+            this.isAnswerModalVisible = true;
+        },
+        shouldShowModalWithAnswers(answerId) {
+            return hasSimilarFeatures(answerId);
+        },
+        selectAnswerFromModal(answerId) {
+            if (this.isAActive) {
+                this.setState(0, answerId);
+            } else if (this.isBActive) {
+                this.setState(1, answerId);
+            } else if (this.isCActive) {
+                this.setState(2, answerId);
+            }
+            this.isAnswerModalVisible = false;
+        }
     },
     mounted() {
         //To disable context menu
@@ -203,50 +258,62 @@ export default {
     }
 
     .main-title {
-        display: inline-block;
         color: gray;
         position: absolute;
         font-weight: bold;
         width: 1024px;
         left: 0;
-        height: 120px;
+        height: 65px;
         text-align: center;
         font-size: 38px;
-        line-height: 80px;
         background-color: white;
         color: #606060;
+        transition: all linear 500ms;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-left: 16px;
+        padding-right: 16px;
+        border-bottom: 1px solid lightgray;
     }
 
-    .detector-info {
-        display: flex;
-        align-content: flex-end;
-        justify-content: center;
-        flex-direction: row;
-        align-items: flex-end;
+    .detector-info-block {
         position: absolute;
         top: 35px;
-        left: 0;
-        right: 0;
-        padding: 6px;
+        width: 100%;
+        height: auto;
 
-        & .icon {
-            width: 70px;
-            height: 70px;
-            margin-right: 8px;
-            background-size: cover;
+        & .detector-info {
+            display: flex;
+            align-content: flex-end;
+            justify-content: center;
+            flex-direction: row;
+            align-items: center;
+            position: absolute;
+            top: 35px;
+            left: 0;
+            right: 0;
+            padding: 6px;
 
-            &.hand-icon-1 {
-                background-image: url('@images/hand-icon-1.png');
+            & .icon {
+                width: 70px;
+                height: 70px;
+                margin-right: 8px;
+                background-size: cover;
+
+                &.hand-icon-1 {
+                    background-image: url('@images/hand-icon-1.png');
+                }
+
+                &.hand-icon-2 {
+                    background-image: url('@images/hand-icon-2.png');
+                }
             }
 
-            &.hand-icon-2 {
-                background-image: url('@images/hand-icon-2.png');
+            & .text {
+                font-size: 18px;
+                font-weight: normal;
             }
-        }
-
-        & .text {
-            font-size: 18px;
-            font-weight: normal;
         }
     }
 
@@ -295,6 +362,11 @@ export default {
         width: 750px;
         height: 120px;
         padding-right: 20px;
+        opacity: 1;
+
+        &.disabled {
+            opacity: 0.7;
+        }
 
         .answer {
             left: 0;
@@ -314,6 +386,11 @@ export default {
         width: 750px;
         height: 125px;
         padding-left: 20px;
+        opacity: 1;
+
+        &.disabled {
+            opacity: 0.7;
+        }
 
         .answer {
             right: 0;
@@ -367,6 +444,14 @@ export default {
         span {
             font-size: 18px;
             margin-right: 8px;
+        }
+
+        &:hover {
+            color: #2d2d2d;
+
+            i {
+                color: #2d2d2d;
+            }
         }
     }
 
