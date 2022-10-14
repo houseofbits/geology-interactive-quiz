@@ -1,6 +1,6 @@
 {
     "quiz1": {
-        "correct":[2,4,6]
+        "correct":[4,2,6]
     },
     "quiz2": {
         "endpointUrl": "http://10.10.30.210:8888/set-port-pins",

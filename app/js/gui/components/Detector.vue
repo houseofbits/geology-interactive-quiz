@@ -92,10 +92,14 @@ export default {
             }
         },
         emitState(id) {
-            this.$emit('detected', id);
+            if (!this.disabled) {
+                this.$emit('detected', id);
+            }
         },
         emitFailed() {
-            this.$emit('failed');
+            if (!this.disabled) {
+                this.$emit('failed');
+            }
         },
     },
     mounted() {

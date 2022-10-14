@@ -26,7 +26,7 @@
             </div>
         </div>
 
-        <detector :position-x="800" :position-y="150" :definitions="featureDefinitions" :disabled="false"
+        <detector :position-x="800" :position-y="150" :definitions="featureDefinitions" :disabled="isADisabled"
                   :state="answerState[0]" @detected="(s) => this.setAnswer(0, s)" @failed="failedDetection"/>
 
         <detector :position-x="60" :position-y="370" :definitions="featureDefinitions" :disabled="isBDisabled"
@@ -118,12 +118,12 @@ export default {
             isAnswerModalVisible: false,
             modalAnswers: [],
             answerNames: {
-                1: "MĀLS",
-                2: "ŠĶEMBAS",
-                3: "SMILŠAKMENS",
-                4: "GRANTS",
-                5: "OĻI",
-                6: "ZVIRGZDI",
+                6: "MĀLS",
+                5: "ŠĶEMBAS",
+                2: "SMILŠAKMENS",
+                3: "GRANTS",
+                4: "OĻI",
+                8: "ZVIRGZDI",
             },
         };
     },
@@ -155,10 +155,25 @@ export default {
         isCActive() {
             return this.answerState[2] === null;
         },
+        isADisabled() {
+            if(this.isAnswerModalVisible) {
+                return true;
+            }    
+
+            return false;
+        },
         isBDisabled() {
+            if(this.isAnswerModalVisible) {
+                return true;
+            }    
+
             return this.isAActive;
         },
         isCDisabled() {
+            if(this.isAnswerModalVisible) {
+                return true;
+            }    
+
             return this.isBActive;
         }
     },
@@ -173,6 +188,10 @@ export default {
             this.resetTimeout = setTimeout(this.reset, 60000);
         },
         setAnswer(which, answerId) {
+            if (this.isAnswerModalVisible) {
+                return;
+            }
+
             if (this.answerState[which] === null) {
                 if (this.shouldShowModalWithAnswers(answerId)) {
                     this.showModalWithAnswers(answerId);

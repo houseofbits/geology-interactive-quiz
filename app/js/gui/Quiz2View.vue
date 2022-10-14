@@ -268,6 +268,10 @@ export default {
             }
         },
         setAnswer(which, answerId) {
+            if (this.isAnswerModalVisible) {
+                return;
+            }
+                        
             if (this.answerState[which] === null) {
                 if (this.shouldShowModalWithAnswers(answerId)) {
                     this.selectedIndex = which;

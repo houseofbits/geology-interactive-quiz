@@ -162,7 +162,7 @@ export default {
             this.setState(answerId);
         },
         setAnswer(answerId) {
-            if (this.isCompleted) {
+            if (this.isCompleted || this.isAnswerModalVisible) {
                 return;
             }
 
