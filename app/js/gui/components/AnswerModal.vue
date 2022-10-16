@@ -2,7 +2,7 @@
     <div :class="{visible: visible}" class="modal-overlay">
         <div class="modal-box">
             <div class="header">
-                Izvēlies vienu no atbilžu variantiem
+                Novieto klucīti atpakaļ vietā un izvēlies vienu no atbilžu variantiem
             </div>
             <div class="body">
                 <div v-for="answer in answers" :key="answer.id" @click="click(answer.id)" class="answer-button">

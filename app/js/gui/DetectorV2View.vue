@@ -47,6 +47,10 @@
                 </div>
             </div>
         </div>
+
+        <div class="container offscreen">
+            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch">Simulate touch</button>
+        </div>
     </div>
 </template>
 
@@ -57,10 +61,12 @@ import FeatureDefinitionBuilder from "@js/Services/FeatureDefinitionBuilder";
 import Config from "@json/config.json";
 import Detector from "@js/gui/components/Detector.vue";
 import SimilarFeatureFinder from "@js/Services/SimilarFeatureFinder";
+import TouchSimulatorMixin from "@js/Helpers/TouchSimulatorMixin.js";
 
 export default {
     name: 'DetectorView',
     components: {Detector},
+    mixins: [TouchSimulatorMixin],
     data() {
         return {
             state1: null,
@@ -82,6 +88,9 @@ export default {
         },
         beginDetection() {
             this.isDetectionStarted = true;
+        },
+        simulateTouch() {
+            this.toggleFeatureEvent(1, 400,400, this.featureDefinitions);
         }
     },
     mounted() {
@@ -92,11 +101,10 @@ export default {
         this.detector.detectStartHandler = this.beginDetection;
         this.detector.runDetectionLoop();
 
-        this.similarFeatureFinder.setFeatures(this.featureDefinitions);
-
-        for (let i = 0; i < this.featureDefinitions.length; i++) {
-            this.similarFeatureFinder.findSimilar(i);
-        }
+        // this.similarFeatureFinder.setFeatures(this.featureDefinitions);
+        // for (let i = 0; i < this.featureDefinitions.length; i++) {
+        //     this.similarFeatureFinder.findSimilar(i);
+        // }
     }
 };
 </script>
@@ -109,6 +117,13 @@ export default {
     width: 1024px;
     height: 768px;
     background-color: rgba(0, 0, 0, 0.4);
+
+    .offscreen {
+        position: absolute;
+        width: 1024px;
+        height: 500px;
+        top: 768px;
+    }
 
     .touch-element {
         position: absolute;

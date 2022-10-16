@@ -23,7 +23,7 @@
 
         <div class="main-title">
             <div>
-                <span v-if="selectedQuestion!==8">Pievieno pareizo nosaukumu</span>
+                <span v-if="selectedQuestion!==8">Izvēlies pareizo nosaukumu</span>
             </div>
 
             <div class="main-buttons-block">
@@ -33,21 +33,6 @@
                 <div class="reset-button" @click="reset">
                     <span>No sākuma</span>
                     <i class="fas fa-sync-alt"></i>
-                </div>
-            </div>
-        </div>
-        <div v-if="selectedQuestion!==8 && !useButtons" class="detector-info-block">
-            <div v-if="hasDetectionError" class="detector-info">
-                <div class="icon hand-icon-2"></div>
-                <div class="text">
-                    Neizdevās atpazīt elementu. Mēģini vēlreiz novietojot elementu precīzi sarkanajā aplī.
-                </div>
-            </div>
-            <div v-else class="detector-info">
-                <div class="icon hand-icon-1"></div>
-                <div class="text">Novieto atbilstošo elementu sarkanajā aplī. Turi to vismaz 2 sekundes, kamēr
-                    notiek
-                    atpazīšana.
                 </div>
             </div>
         </div>
@@ -61,13 +46,11 @@ import QuizPage from "@js/gui/QuizPage.vue";
 import Quiz3Navigator from '@js/gui/components/Quiz3Navigator.vue';
 import TextLV from "@json/quiz3-text-lv.json";
 import Quiz3FinalPage from "@js/gui/components/Quiz3FinalPage.vue";
-import ObjectRecognitionServiceInstance from '@js/Services/ObjectRecongnitionService.js';
 import {AnswerState} from "@js/Stuctures/Constants.js";
 import Config from "@json/config.json";
 import Detector from "@js/gui/components/Detector.vue";
 import FeatureDefinitionBuilder from "@js/Services/FeatureDefinitionBuilder";
 import AnswerModal from "@js/gui/components/AnswerModal.vue";
-import {getSimilarFeatureIds, hasSimilarFeatures} from "@js/Helpers/SimilarFeatures";
 
 export default {
     name: "Quiz3View",
@@ -124,11 +107,11 @@ export default {
         },
         selectedCorrectAnswer() {
             this.setQuestionState(AnswerState.CORRECT);
-            setTimeout(this.continueNext, 1000);
+            setTimeout(this.continueNext, 1500);
         },
         selectedWrongAnswer() {
             this.setQuestionState(AnswerState.INCORRECT);
-            setTimeout(this.continueNext, 500);
+            setTimeout(this.continueNext, 1500);
         },
         pageClass(i) {
             if (i < this.selectedQuestion) {
@@ -142,8 +125,7 @@ export default {
             }
         },
         reset() {
-            this.selectedQuestion = 0;
-            this.initPage();
+            this.$router.go();
         },
         initPage() {
             this.updateResetTimer();
@@ -177,7 +159,7 @@ export default {
         },
         updateResetTimer() {
             clearTimeout(this.resetTimeout);
-            this.resetTimeout = setTimeout(this.reset, 60000);
+            this.resetTimeout = setTimeout(this.reset, 120000);
         },
         failedDetection() {
             this.updateResetTimer();
@@ -240,46 +222,6 @@ export default {
         border-bottom: 1px solid lightgray;
     }
 
-    .detector-info-block {
-        position: absolute;
-        top: 35px;
-        width: 100%;
-        height: auto;
-
-        & .detector-info {
-            display: flex;
-            align-content: flex-end;
-            justify-content: center;
-            flex-direction: row;
-            align-items: center;
-            position: absolute;
-            top: 35px;
-            left: 0;
-            right: 0;
-            padding: 6px;
-
-            & .icon {
-                width: 70px;
-                height: 70px;
-                margin-right: 8px;
-                background-size: cover;
-
-                &.hand-icon-1 {
-                    background-image: url('@images/hand-icon-1.png');
-                }
-
-                &.hand-icon-2 {
-                    background-image: url('@images/hand-icon-2.png');
-                }
-            }
-
-            & .text {
-                font-size: 18px;
-                font-weight: normal;
-            }
-        }
-    }
-
     .main-buttons-block {
         display: flex;
 
@@ -288,12 +230,14 @@ export default {
             margin-right: 36px;
             display: flex;
             align-items: center;
+            color: rgb(119, 170, 197);
+            transition: all linear 200ms;
 
             &:hover {
-                color: #2d2d2d;
+                color: #418bb4;
 
                 i {
-                    color: #2d2d2d;
+                    color: #418bb4;
                 }
             }
         }
@@ -304,10 +248,12 @@ export default {
             z-index: 50;
             display: flex;
             align-items: center;
+            color: rgb(119, 170, 197);
+            transition: all linear 200ms;
 
             i {
                 font-size: 32px;
-                color: #606060;
+                transition: all linear 200ms;
             }
 
             span {
@@ -316,10 +262,10 @@ export default {
             }
 
             &:hover {
-                color: #2d2d2d;
+                color: #418bb4;
 
                 i {
-                    color: #2d2d2d;
+                    color: #418bb4;
                 }
             }
         }

@@ -28,7 +28,7 @@ export default class ObjectDefinition {
         return (error - Math.abs(actualDist - mid)) / error;
     }
 
-    calculatePoints()
+    calculatePoints(offsetX = 0, offsetY = 0)
     {
         const dist = this.segments[0][0];
         const r1 = this.segments[1][0];
@@ -50,9 +50,9 @@ export default class ObjectDefinition {
         const y2 = dist * (h / dist);
 
         return [
-            p1,
-            p2,
-            new TouchPoint(2, x2, y2)
+            new TouchPoint(0, p1.x + offsetX, p1.y + offsetY),
+            new TouchPoint(1, p2.x + offsetX, p2.y + offsetY),
+            new TouchPoint(2, x2 + offsetX, y2 + offsetY)
         ];
     }
 }

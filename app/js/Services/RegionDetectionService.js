@@ -29,18 +29,18 @@ export default class RegionDetectionService {
         this.detectEndHandler = null;
         this.rawResultHandler = null;
         this.isDisabled = false;
-
-        //this.touch.touchHandler = this.touchHandler.bind(this);
     }
 
     setDisabled(disabled) {
         this.isDisabled = disabled;
-        clearTimeout(this.detectionTimer);
-        clearTimeout(this.detectorLoopIntervalId);
+        this.finishDetection();
+        this.touch.unregisterInputHandlers();
 
         if (!this.isDisabled) {
-            this.runDetectionLoop();
+            this.touch.registerInputHandlers();
         }
+        this.runDetectionLoop();
+        // console.log('is disabled '+this.isDisabled);
     }
 
     beginDetection() {

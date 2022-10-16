@@ -36,7 +36,7 @@ export default {
         },
         disabled: {
             type: Boolean,
-            required: true
+            required: true,
         },
         state: {
             type: Number,
@@ -55,6 +55,7 @@ export default {
     },
     watch: {
         disabled(value) {
+            //console.log(this.positionX+', '+this.positionY);
             this.detector.setDisabled(value);
         }
     },
@@ -104,12 +105,13 @@ export default {
     },
     mounted() {
         this.detector.touch.region.set(this.positionX - 30,this.positionY - 30, this.positionX + 180, this.positionY + 180);
-        this.detector.touch.registerInputHandlers();
+        // this.detector.touch.registerInputHandlers();
         this.detector.featureDefinitions = this.definitions;
-        this.detector.runDetectionLoop();
+        // this.detector.runDetectionLoop();
         this.detector.detectStartHandler = this.detectStartHandler;
         this.detector.detectEndHandler = this.detectEndHandler;
         this.detector.detectedObjectHandler = this.detectedObjectHandler;
+        this.detector.setDisabled(this.disabled);
     },
     beforeUnmount() {
         this.detector.touch.unregisterInputHandlers();

@@ -1,21 +1,30 @@
 <template>
     <div class="frame" :class="{visible: selected}">
-        <span class="title" :class="{inactive: isHint1Visible}" v-html="title"></span>
-        <div
-            class="hint1"
-            :class="{active: isHint1Visible, inactive: isHint2Visible || (isHint1Visible && isCorrectAnswer)}"
-            v-html="hint1"
-        >
+        <div class="questions-container">
+            <div v-html="title" class="text visible"></div>
+            <div v-html="hint1" class="text" :class="{visible:isHint1Visible}"></div>
+            <div v-html="hint2" class="text" :class="{visible:isHint2Visible}"></div>
         </div>
-        <div
-            class="hint2"
-            :class="{active: isHint2Visible, inactive: isHint2Visible && isCorrectAnswer}"
-            v-html="hint2"
-        >
+        <div class="show-hint-buttons-block" :class="{visible: !isCorrectAnswer}">
+            <div v-if="!isHint1Visible" @click="isHint1Visible=true">Papildiespēja
+                <i class="fa-solid fa-right-long"></i>
+            </div>
+            <div v-else-if="!isHint2Visible" @click="isHint2Visible=true">Pēdējā papildiespēja
+                <i class="fa-solid fa-right-long"></i>
+            </div>
         </div>
 
-        <div class="correct-answer" :class="{visible:isCorrectAnswer}">
+        <div class="correct-answer" :class="{visible:isCorrectAnswer && !useButtons}">
             <div class="block">{{ answerTitle }}</div>
+        </div>
+
+        <div class="detector-info-block">
+            <div :class="{visible: !useButtons && !isCorrectAnswer}" class="detector-info">
+                <div class="icon hand-icon-1"></div>
+                <div class="text">Novieto atbilstošo klucīti sarkanajā aplī. Turi to vismaz 2 sekundes, kamēr
+                    notiek atpazīšana.
+                </div>
+            </div>
         </div>
 
         <detector
@@ -33,7 +42,7 @@
 
         <div :class="{visible: useButtons}" class="answer-buttons">
             <div v-for="answerId in allAnswerIdsShuffled" class="answer-button mt-2 btn-block mx-1"
-                 :class="{incorrect: wrongAnswerIds.includes(answerId)}"
+                 :class="{disabled: isAnswerButtonDisabled(answerId), incorrect: isIncorrect(answerId), correct: isCorrect(answerId)}"
                  @click="setStateManually(answerId)">
                 {{ answerNames[answerId] }}
             </div>
@@ -49,7 +58,8 @@
                     </button>
                 </div>
             </div>
-
+            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch(1)">Simulate touch #1
+            </button>
         </div>
     </div>
 </template>
@@ -61,9 +71,11 @@ import Config from "@json/config.json";
 import {getSimilarFeatureIds, hasSimilarFeatures} from "@js/Helpers/SimilarFeatures";
 import {AnswerState} from "@js/Stuctures/Constants";
 import AnswerModal from "@js/gui/components/AnswerModal.vue";
+import TouchSimulatorMixin from "@js/Helpers/TouchSimulatorMixin.js";
 
 export default {
     name: "QuizPage",
+    mixins: [TouchSimulatorMixin],
     components: {AnswerModal, Detector},
     props: {
         selected: {
@@ -119,14 +131,17 @@ export default {
             modalAnswers: [],
             isHint1Visible: false,
             isHint2Visible: false,
-            isDisabled: true,
             wrongAnswerIds: [],
             isCompleted: false,
+            selectedAnswerId: null,
         };
     },
     computed: {
         isCorrectAnswer() {
             return this.answerState === AnswerState.CORRECT;
+        },
+        isIncorrectAnswer() {
+            return this.answerState === AnswerState.INCORRECT;
         },
         allAnswerIdsShuffled() {
             const ids = Object.keys(this.answerNames);
@@ -134,32 +149,36 @@ export default {
                 return Math.random() - 0.5;
             });
             return ids;
+        },
+        isDisabled() {
+            return !this.selected || this.useButtons || this.isAnswerModalVisible;
         }
     },
     watch: {
         selected(value) {
-            this.answerState = null;
             if (value === true) {
-                this.isDisabled = !value;
+                this.answerState = null;
                 this.isCompleted = false;
                 this.wrongAnswerIds = [];
                 this.isHint1Visible = false;
                 this.isHint2Visible = false;
-            }
-            if (value && this.useButtons) {
-                this.isDisabled = true;
+                this.selectedAnswerId = null;
             }
         },
-        useButtons(val) {
-            if (this.selected) {
-                this.isDisabled = val;
-            }
-        }
     },
     methods: {
+        isCorrect(answerId) {
+            return this.isCorrectAnswer && answerId === this.selectedAnswerId;
+        },
+        isIncorrect(answerId) {
+            return this.isIncorrectAnswer && answerId === this.selectedAnswerId;
+        },
         selectAnswerFromModal(answerId) {
             this.isAnswerModalVisible = false;
             this.setState(answerId);
+        },
+        isAnswerButtonDisabled(answerId) {
+            return this.selectedAnswerId !== null && answerId !== this.selectedAnswerId;
         },
         setAnswer(answerId) {
             if (this.isCompleted || this.isAnswerModalVisible) {
@@ -177,41 +196,19 @@ export default {
                 return;
             }
 
+            this.selectedAnswerId = answerId;
+
             this.answerState = (parseInt(answerId) === parseInt(this.correctAnswerId))
                 ? AnswerState.CORRECT
                 : AnswerState.INCORRECT;
 
+            this.isCompleted = true;
+
             if (this.answerState === AnswerState.CORRECT) {
-                this.isCompleted = true;
                 this.$emit('correct');
             } else {
-                this.checkAnswerHints();
-                this.wrongAnswerIds.push(answerId);
+                this.$emit('incorrect');
             }
-        },
-        checkAnswerHints() {
-            const timeout = this.useButtons ? 0 : 1500;
-            if (this.isHint1Visible) {
-                if (this.isHint2Visible) {
-                    setTimeout(this.finishIncorrect.bind(this), timeout);
-                } else {
-                    setTimeout(this.showHint2.bind(this), timeout);
-                }
-            } else {
-                setTimeout(this.showHint1.bind(this), timeout);
-            }
-        },
-        showHint1() {
-            this.isHint1Visible = true;
-            this.answerState = null;
-        },
-        showHint2() {
-            this.isHint2Visible = true;
-            this.answerState = null;
-        },
-        finishIncorrect() {
-            this.isCompleted = true;
-            this.$emit('incorrect');
         },
         failedDetection() {
             this.$emit('failed-detection');
@@ -237,11 +234,17 @@ export default {
             if (this.useButtons) {
                 this.setState(answerId);
             }
+        },
+        simulateTouch(index) {
+            if (index === 1) {
+                this.toggleFeatureEvent(1, 105, 485, this.featureDefinitions);
+            } else if (index === 2) {
+                this.toggleFeatureEvent(1, 205, 485, this.featureDefinitions);
+            } else if (index === 3) {
+                this.toggleFeatureEvent(1, 305, 485, this.featureDefinitions);
+            }
         }
     },
-    mounted() {
-        this.isDisabled = !this.selected;
-    }
 }
 </script>
 
@@ -311,6 +314,10 @@ export default {
         }
     }
 
+    .show-hint1-button {
+
+    }
+
     .hint2 {
         position: absolute;
         display: inline-block;
@@ -349,7 +356,7 @@ export default {
         font-size: 48px;
         font-weight: bold;
         line-height: 48px;
-        top: 340px;
+        top: 380px;
         padding-left: 40px;
         padding-right: 40px;
         transform: scale(0.1);
@@ -413,7 +420,20 @@ export default {
 
         &.incorrect, &.incorrect:hover {
             background-color: #b00000;
-            opacity: 0.7;
+            opacity: 1;
+            box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.6);
+        }
+
+        &.correct, &.correct:hover {
+            background-color: rgb(5, 109, 0);
+            opacity: 1;
+            box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.6);
+        }
+
+        &.disabled, &.disabled:hover {
+            opacity: 0.6;
+            background-color: #606060;
+            box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.2);
         }
 
         &:hover {
@@ -439,6 +459,116 @@ export default {
     &.visible {
         opacity: 1;
         transition-duration: 200ms;
+    }
+}
+
+.questions-container {
+    position: absolute;
+    left: 0;
+    top: 80px;
+    width: 1024px;
+    height: 310px;
+    //border: solid 1px red;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+
+    .text {
+        //border: solid 1px blue;
+        display: flex;
+        justify-content: center;
+        text-align: center;
+        font-size: 32px;
+        line-height: 36px;
+        padding-left: 40px;
+        padding-right: 40px;
+        color: #414141;
+        width: 100%;
+        margin-top: 0;
+        transition: all linear 400ms;
+        overflow: hidden;
+        height: 0;
+        opacity: 0;
+
+        &:first-child {
+            margin-top: 0;
+        }
+
+        &.visible {
+            height: 100px;
+            //margin-top: 32px;
+            opacity: 1;
+        }
+
+    }
+}
+
+.show-hint-buttons-block {
+    position: absolute;
+    left: 0;
+    top: 330px;
+    width: 1024px;
+    height: 30px;
+    //border: solid 1px red;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    font-size: 18px;
+    color: rgb(119, 170, 197);
+    font-weight: bold;
+    transition: all linear 200ms;
+    opacity: 0;
+
+    &.visible {
+        opacity: 1;
+    }
+
+    &:hover {
+        color: #418bb4;
+    }
+}
+
+.detector-info-block {
+    position: absolute;
+    top: 360px;
+    width: 100%;
+    height: auto;
+
+    & .detector-info {
+        display: flex;
+        align-content: flex-end;
+        justify-content: center;
+        flex-direction: row;
+        align-items: center;
+        position: absolute;
+        top: 35px;
+        left: 0;
+        right: 0;
+        padding: 6px;
+        transition: all linear 500ms;
+        opacity: 0;
+
+        &.visible {
+            opacity: 1;
+        }
+
+        & .icon {
+            width: 70px;
+            height: 70px;
+            margin-right: 8px;
+            background-size: cover;
+
+            &.hand-icon-1 {
+                background-image: url('@images/hand-icon-1.png');
+            }
+        }
+
+        & .text {
+            font-size: 18px;
+            font-weight: normal;
+        }
     }
 }
 

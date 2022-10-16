@@ -19,8 +19,7 @@
             </div>
             <div v-else class="detector-info">
                 <div class="icon hand-icon-1"></div>
-                <div class="text">Novieto atbilstošo elementu sarkanajā aplī. Turi to vismaz 2 sekundes, kamēr
-                    notiek
+                <div class="text">Novieto atbilstošo klucīti sarkanajā aplī. Turi to vismaz 2 sekundes, kamēr notiek
                     atpazīšana.
                 </div>
             </div>
@@ -64,25 +63,33 @@
         <div class="container offscreen">
             <div class="row">
                 <div class="col-lg-12">
-                    <button v-for="answerId in Object.keys(answerNames)" class="btn btn-lg btn-success mt-2 btn-block mx-1"
+                    <button v-for="answerId in Object.keys(answerNames)"
+                            class="btn btn-lg btn-success mt-2 btn-block mx-1"
                             @click="setAnswer(0, answerId)">
                         {{ answerNames[answerId] }}
                     </button>
                 </div>
                 <div class="col-lg-12">
-                    <button v-for="answerId in Object.keys(answerNames)" class="btn btn-lg btn-success mt-2 btn-block mx-1"
+                    <button v-for="answerId in Object.keys(answerNames)"
+                            class="btn btn-lg btn-success mt-2 btn-block mx-1"
                             @click="setAnswer(1, answerId)">
                         {{ answerNames[answerId] }}
                     </button>
                 </div>
                 <div class="col-lg-12">
-                    <button v-for="answerId in Object.keys(answerNames)" class="btn btn-lg btn-success mt-2 btn-block mx-1"
+                    <button v-for="answerId in Object.keys(answerNames)"
+                            class="btn btn-lg btn-success mt-2 btn-block mx-1"
                             @click="setAnswer(2, answerId)">
                         {{ answerNames[answerId] }}
                     </button>
                 </div>
             </div>
-
+            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch(1)">Simulate touch #1
+            </button>
+            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch(2)">Simulate touch #2
+            </button>
+            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch(3)">Simulate touch #3
+            </button>
         </div>
 
     </div>
@@ -96,9 +103,11 @@ import Detector from "@js/gui/components/Detector.vue";
 import FeatureDefinitionBuilder from "@js/Services/FeatureDefinitionBuilder";
 import AnswerModal from "@js/gui/components/AnswerModal.vue";
 import {getSimilarFeatureIds, hasSimilarFeatures} from "@js/Helpers/SimilarFeatures";
+import TouchSimulatorMixin from "@js/Helpers/TouchSimulatorMixin.js";
 
 export default {
     name: "Quiz1View",
+    mixins: [TouchSimulatorMixin],
     components: {
         AnswerModal,
         Detector
@@ -156,23 +165,19 @@ export default {
             return this.answerState[2] === null;
         },
         isADisabled() {
-            if(this.isAnswerModalVisible) {
-                return true;
-            }    
-
-            return false;
+            return this.isAnswerModalVisible;
         },
         isBDisabled() {
-            if(this.isAnswerModalVisible) {
+            if (this.isAnswerModalVisible) {
                 return true;
-            }    
+            }
 
             return this.isAActive;
         },
         isCDisabled() {
-            if(this.isAnswerModalVisible) {
+            if (this.isAnswerModalVisible) {
                 return true;
-            }    
+            }
 
             return this.isBActive;
         }
@@ -238,6 +243,15 @@ export default {
                 this.setState(2, answerId);
             }
             this.isAnswerModalVisible = false;
+        },
+        simulateTouch(index) {
+            if (index === 1) {
+                this.toggleFeatureEvent(1, 805, 155, this.featureDefinitions);
+            } else if (index === 2) {
+                this.toggleFeatureEvent(1, 65, 375, this.featureDefinitions);
+            } else if (index === 3) {
+                this.toggleFeatureEvent(1, 805, 555, this.featureDefinitions);
+            }
         }
     },
     mounted() {
@@ -454,10 +468,13 @@ export default {
         z-index: 50;
         display: flex;
         align-items: center;
+        color: rgb(119, 170, 197);
+        transition: all linear 200ms;
 
         i {
             font-size: 32px;
-            color: #606060;
+            color: rgb(119, 170, 197);
+            transition: all linear 200ms;
         }
 
         span {
@@ -466,10 +483,10 @@ export default {
         }
 
         &:hover {
-            color: #2d2d2d;
+            color: #418bb4;
 
             i {
-                color: #2d2d2d;
+                color: #418bb4;
             }
         }
     }
@@ -551,30 +568,5 @@ export default {
         right: 60px;
     }
 }
-
-//.line {
-//    background-color: rgba(255,255,255,0.5);
-//    position: absolute;
-//    height: 3px;
-//
-//    &.line-1 {
-//        width: 164px;
-//        top: 205px;
-//        right: 210px;
-//    }
-//
-//    &.line-2 {
-//        width: 164px;
-//        top: 415px;
-//        left: 210px;
-//    }
-//
-//    &.line-3 {
-//        width: 164px;
-//        top: 625px;
-//        right: 210px;
-//    }
-//}
-
 
 </style>

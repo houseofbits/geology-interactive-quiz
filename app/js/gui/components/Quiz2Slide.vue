@@ -327,21 +327,4 @@ export default {
     opacity: 1;
 }
 
-.close-button {
-    position: absolute;
-    right: 10px;
-    top: 20px;
-    width: 60px;
-    height: 60px;
-    z-index: 50;
-    visibility: hidden;
-    opacity: 0;
-    transition: all linear 500ms;
-
-    i {
-        font-size: 50px;
-        color: black;
-    }
-}
-
 </style>

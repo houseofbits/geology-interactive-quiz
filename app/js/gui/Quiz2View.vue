@@ -27,30 +27,55 @@
         <detector
             v-for="(a, index) in 5"
             :key="index"
-            :class="{visible: openIndex===null && !useButtons}"
+            :class="{visible: openIndex===null && !useButtons && !isAnswerCorrect(index)}"
             :position-x="tagState[index].x"
             :position-y="tagState[index].y"
             :definitions="featureDefinitions"
             :disabled="isDisabled(index)"
             :state="answerState[index]"
-            @detected="(s) => setTagAnswerState(index, s)"
+            @detected="(s) => setAnswer(index, s)"
             @failed="failedDetection"/>
 
         <div
             v-for="(a, index) in 5" class="point"
             :data-index="index"
-            :class="{visible: !openIndex && !useButtons}"
+            :class="{visible: !openIndex}"
             :key="'line'+index"
         >
             <div class="line"></div>
         </div>
 
-        <div :class="{visible: !openIndex && useButtons}" class="answers-block">
-            <div @click="openSlideManually(0)">NOGĀZE</div>
-            <div @click="openSlideManually(1)">PAKĀJE</div>
-            <div @click="openSlideManually(2)">DELTA</div>
-            <div @click="openSlideManually(3)">ESTUĀRS</div>
-            <div @click="openSlideManually(4)">DELTAS NOGĀZE</div>
+        <div :class="{visible: !openIndex}" class="answers-block">
+            <div @click="openSlideManually(0)" class="answer-button" :class="{visible:isAnswerCorrect(0) || useButtons}">
+                <span>NOGĀZE</span>
+                <span class="link">Apskatīt
+                    <i class="fa-solid fa-right-long"></i>
+                </span>
+            </div>
+            <div @click="openSlideManually(1)" class="answer-button" :class="{visible:isAnswerCorrect(1) || useButtons}">
+                <span>PAKĀJE</span>
+                <span class="link">Apskatīt
+                    <i class="fa-solid fa-right-long"></i>
+                </span>
+            </div>
+            <div @click="openSlideManually(2)" class="answer-button" :class="{visible:isAnswerCorrect(2) || useButtons}">
+                <span>DELTA</span>
+                <span class="link">Apskatīt
+                    <i class="fa-solid fa-right-long"></i>
+                </span>
+            </div>
+            <div @click="openSlideManually(3)" class="answer-button" :class="{visible:isAnswerCorrect(3) || useButtons}">
+                <span>ESTUĀRS</span>
+                <span class="link">Apskatīt
+                    <i class="fa-solid fa-right-long"></i>
+                </span>
+            </div>
+            <div @click="openSlideManually(4)" class="answer-button" :class="{visible:isAnswerCorrect(4) || useButtons}">
+                <span>DELTAS NOGĀZE</span>
+                <span class="link">Apskatīt
+                    <i class="fa-solid fa-right-long"></i>
+                </span>
+            </div>
         </div>
 
         <div class="main-title">
@@ -69,7 +94,7 @@
             </div>
         </div>
 
-        <div v-if="!useButtons" class="detector-info-block">
+        <div v-if="!useButtons && !areAllAnswersCorrect" class="detector-info-block">
             <div v-if="hasDetectionError" class="detector-info">
                 <div class="icon hand-icon-2"></div>
                 <div class="text">
@@ -78,9 +103,8 @@
             </div>
             <div v-else class="detector-info">
                 <div class="icon hand-icon-1"></div>
-                <div class="text">Novieto atbilstošo elementu sarkanajā aplī. Turi to vismaz 2 sekundes, kamēr
-                    notiek
-                    atpazīšana.
+                <div class="text">Novieto atbilstošo klucīti sarkanajā aplī. Turi to vismaz 2 sekundes, kamēr
+                    notiek atpazīšana.
                 </div>
             </div>
         </div>
@@ -97,6 +121,9 @@
                     </button>
                 </div>
             </div>
+            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch(1)">Simulate touch #1</button>
+            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch(2)">Simulate touch #2</button>
+            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch(3)">Simulate touch #3</button>
         </div>
     </div>
 </template>
@@ -112,9 +139,11 @@ import FeatureDefinitionBuilder from "@js/Services/FeatureDefinitionBuilder";
 import Detector from "@js/gui/components/Detector.vue";
 import AnswerModal from "@js/gui/components/AnswerModal.vue";
 import {getSimilarFeatureIds, hasSimilarFeatures} from "@js/Helpers/SimilarFeatures.js";
+import TouchSimulatorMixin from "@js/Helpers/TouchSimulatorMixin";
 
 export default {
     name: "Quiz2View",
+    mixins: [TouchSimulatorMixin],
     components: {
         AnswerModal,
         Quiz2Slide,
@@ -145,35 +174,35 @@ export default {
                     state: null,
                     timer: null,
                     x: 25,
-                    y: 150,
+                    y: 170,
                     answer: 1,
                 },
                 {
                     state: null,
                     timer: null,
                     x: 230,
-                    y: 250,
+                    y: 270,
                     answer: 2,
                 },
                 {
                     state: null,
                     timer: null,
                     x: 435,
-                    y: 150,
+                    y: 170,
                     answer: 3,
                 },
                 {
                     state: null,
                     timer: null,
                     x: 640,
-                    y: 250,
+                    y: 270,
                     answer: 5,
                 },
                 {
                     state: null,
                     timer: null,
                     x: 845,
-                    y: 150,
+                    y: 170,
                     answer: 7,
                 },
             ],
@@ -196,8 +225,19 @@ export default {
         text() {
             return TextLV;
         },
+        areAllAnswersCorrect() {
+            for (const state of this.answerState) {
+                if (state !== AnswerState.CORRECT) {
+                    return false;
+                }
+            }
+            return true;
+        },
     },
     methods: {
+        isAnswerCorrect(index) {
+            return this.answerState[index] === AnswerState.CORRECT;
+        },
         reset() {
             this.$set(this.answerState, 0, null);
             this.$set(this.answerState, 1, null);
@@ -205,30 +245,13 @@ export default {
             this.$set(this.answerState, 3, null);
             this.$set(this.answerState, 4, null);
         },
-        isTagCorrect(index) {
-            return this.tagState[index].state === AnswerState.CORRECT;
-        },
-        isTagIncorrect(index) {
-            return this.tagState[index].state === AnswerState.INCORRECT;
-        },
-        setTagAnswerState(index, state) {
-            if (this.tagState[index].state === null) {
-                this.tagState[index].state = state;
-                setTimeout(() => this.openSlide(index), 1000);
-            } else if (state === null) {
-                this.tagState[index].state = null;
-            }
-        },
         openSlide(index) {
             this.openIndex = index;
-
             this.requestLightState(index);
         },
         closeSlide() {
-            this.requestLightState(null);
-
-            this.$set(this.answerState, this.openIndex, null);
             this.openIndex = null;
+            this.requestLightState(null);
         },
         async requestPortPinsWithParams(params) {
             try {
@@ -271,7 +294,9 @@ export default {
             if (this.isAnswerModalVisible) {
                 return;
             }
-                        
+
+            answerId = parseInt(answerId);
+
             if (this.answerState[which] === null) {
                 if (this.shouldShowModalWithAnswers(answerId)) {
                     this.selectedIndex = which;
@@ -311,8 +336,17 @@ export default {
             return this.selectedIndex !== null && this.selectedIndex !== index;
         },
         openSlideManually(index) {
-            if (this.useButtons) {
+            if (this.useButtons || this.isAnswerCorrect(index)) {
                 this.openSlide(index);
+            }
+        },
+        simulateTouch(index) {
+            if (index === 1) {
+                this.toggleFeatureEvent(1, 30,155, this.featureDefinitions);
+            } else if (index === 2) {
+                this.toggleFeatureEvent(1, 235,255, this.featureDefinitions);
+            } else if (index === 3) {
+                this.toggleFeatureEvent(1, 440,155, this.featureDefinitions);
             }
         }
     },
@@ -371,12 +405,14 @@ export default {
             margin-right: 36px;
             display: flex;
             align-items: center;
+            color: rgb(119, 170, 197);
+            transition: all linear 200ms;
 
             &:hover {
-                color: #2d2d2d;
+                color: #418bb4;
 
                 i {
-                    color: #2d2d2d;
+                    color: #418bb4;
                 }
             }
         }
@@ -384,13 +420,15 @@ export default {
         .reset-button {
             width: auto;
             height: 32px;
-            //z-index: 50;
+            color: rgb(119, 170, 197);
             display: flex;
             align-items: center;
+            transition: all linear 200ms;
 
             i {
                 font-size: 32px;
-                color: #606060;
+                color: rgb(119, 170, 197);
+                transition: all linear 200ms;
             }
 
             span {
@@ -399,10 +437,10 @@ export default {
             }
 
             &:hover {
-                color: #2d2d2d;
+                color: #418bb4;
 
                 i {
-                    color: #2d2d2d;
+                    color: #418bb4;
                 }
             }
         }
@@ -632,17 +670,17 @@ export default {
     opacity: 0;
     transition: all linear 500ms;
 
-    &.visible {
-        opacity: 0.7;
-    }
-
-    .line {
+    & .line {
         position: absolute;
         width: 3px;
         height: 200px;
         background-color: white;
         bottom: 40px;
         left: 18px;
+    }
+
+    &.visible {
+        opacity: 0.7;
     }
 
     &[data-index="0"] {
@@ -659,7 +697,7 @@ export default {
         bottom: 80px;
 
         .line {
-            height: 247px;
+            height: 280px;
         }
     }
 
@@ -677,7 +715,7 @@ export default {
         bottom: 80px;
 
         .line {
-            height: 247px;
+            height: 280px;
         }
     }
 
@@ -735,25 +773,66 @@ export default {
     width: 1024px;
     height: auto;
     display: flex;
-    bottom: 15px;
+    top: 130px;
     justify-content: space-around;
     transition: all linear 500ms;
     opacity: 0;
+    align-items: flex-end;
 
     &.visible {
         opacity: 1;
     }
 
     div {
-        color: white;
+        //color: white;
         width: 100%;
         flex-basis: 0;
         font-size: 32px;
         line-height: 32px;
-        font-weight: bold;
         text-align: center;
-        text-shadow: 0 0 6px rgba(0, 0, 0, 0.7);
-        margin-bottom: 35px;
     }
 }
+
+.answer-button {
+    transition: all;
+    transition-duration: 600ms;
+    font-weight: bold;
+    text-align: center;
+    font-size: 24px;
+    //color: white;
+    color: #606060;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin: 8px;
+    //box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.2);
+    flex-grow: 1;
+    text-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    //border-right: 1px solid lightgray;
+
+    &.visible {
+        opacity: 1;
+    }
+
+    & .link {
+        margin-top: 42px;
+        height: 32px;
+        font-size: 18px;
+        color: rgb(119, 170, 197);
+        align-items: center;
+        transition: all linear 200ms;
+        text-shadow: none;
+
+        &:hover {
+            color: #418bb4;
+
+            i {
+                color: #418bb4;
+            }
+        }
+    }
+}
+
 </style>
