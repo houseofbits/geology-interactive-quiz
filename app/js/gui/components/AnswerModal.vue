@@ -2,6 +2,7 @@
     <div :class="{visible: visible}" class="modal-overlay">
         <div class="modal-box">
             <div class="header">
+                <img src="@images/move-away.gif" alt="">
                 Novieto klucīti atpakaļ vietā un izvēlies vienu no atbilžu variantiem
             </div>
             <div class="body">
@@ -54,7 +55,6 @@ export default {
 
     &.visible {
         opacity: 1;
-        pointer-events: auto;
 
         & .modal-box {
             transform: scale(1);
@@ -77,12 +77,17 @@ export default {
 
         & .header {
             width: 100%;
-            height: 60px;
+            height: auto;
             display: flex;
             align-items: center;
             justify-content: center;
             font-size: 18px;
             color: #606060;
+            padding: 16px;
+            padding-bottom: 0;
+            img {
+                margin-right: 16px;
+            }
         }
 
         & .body {
@@ -107,6 +112,7 @@ export default {
                 margin: 8px;
                 box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.2);
                 flex-grow: 1;
+                pointer-events: auto;
 
                 &:hover {
                     background-color: #2d2d2d;
