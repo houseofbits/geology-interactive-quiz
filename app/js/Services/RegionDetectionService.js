@@ -15,6 +15,7 @@ export default class RegionDetectionService {
 
     constructor() {
         this.touch = new TouchRegister();
+        this.regionElement = null;
 
         /** @type {ObjectDefinition[]} */
         this.featureDefinitions = [];
@@ -31,13 +32,17 @@ export default class RegionDetectionService {
         this.isDisabled = false;
     }
 
+    setElement(element) {
+        this.regionElement = element;
+    }
+
     setDisabled(disabled) {
         this.isDisabled = disabled;
         this.finishDetection();
-        this.touch.unregisterInputHandlers();
+        this.touch.unregisterInputHandlers(this.regionElement);
 
         if (!this.isDisabled) {
-            this.touch.registerInputHandlers();
+            this.touch.registerInputHandlers(this.regionElement);
         }
         this.runDetectionLoop();
         // console.log('is disabled '+this.isDisabled);
@@ -283,7 +288,16 @@ export default class RegionDetectionService {
      * @returns {BasicDetectionResult[]}
      */
     detectObjects() {
-        return this.detectObjectFromPoints(this.touch.touches);
+        let objects = this.detectObjectFromPoints(this.touch.touches);
+        if (objects.length ===0 && this.detectedObjects.length === 0 && this.touch.touches.length > 0) {
+            const obj = new BasicDetectionResult();
+            obj.weight = 0.1;
+            obj.defId = this.featureDefinitions[0].id;
+            obj.angles = [0,0,0];
+
+            return [obj];
+        }
+        return objects;
     }
 
     /**

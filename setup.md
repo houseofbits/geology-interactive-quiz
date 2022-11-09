@@ -3,8 +3,6 @@
 ### Common information
 **Location to web application:**    
 ```/var/www/application/geology-interactive-quiz```
-    
-To pull latest version use: git pull
 
 **Local host name:** application.local   
 **Auto-login user:**

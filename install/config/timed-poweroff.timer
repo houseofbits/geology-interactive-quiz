@@ -1,0 +1,10 @@
+[Unit]
+Description=Power Off Scheduling.
+
+[Timer]
+OnCalendar=Mon,Tue,Wed,Fri *-*-* 17:01:00
+OnCalendar=Thu *-*-* 19:01:00
+Unit=poweroff.target
+
+[Install]
+WantedBy=multi-user.target

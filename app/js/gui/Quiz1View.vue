@@ -84,12 +84,12 @@
                     </button>
                 </div>
             </div>
-            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch(1)">Simulate touch #1
-            </button>
-            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch(2)">Simulate touch #2
-            </button>
-            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch(3)">Simulate touch #3
-            </button>
+<!--            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch(1)">Simulate touch #1-->
+<!--            </button>-->
+<!--            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch(2)">Simulate touch #2-->
+<!--            </button>-->
+<!--            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch(3)">Simulate touch #3-->
+<!--            </button>-->
         </div>
 
     </div>
@@ -183,10 +183,11 @@ export default {
         }
     },
     methods: {
+        getCorrectAnswer(which) {
+            return Config.quiz1.correct[which];
+        },
         reset() {
-            this.$set(this.answerState, 0, null);
-            this.$set(this.answerState, 1, null);
-            this.$set(this.answerState, 2, null);
+            this.$router.go();
         },
         updateResetTimer() {
             clearTimeout(this.resetTimeout);
@@ -198,16 +199,15 @@ export default {
             }
 
             if (this.answerState[which] === null) {
-                if (this.shouldShowModalWithAnswers(answerId)) {
-                    this.showModalWithAnswers(answerId);
+                if (this.shouldShowModalWithAnswers(answerId, which)) {
+                    this.showModalWithAnswers(answerId, which);
                 } else {
                     this.setState(which, answerId);
                 }
             }
         },
         setState(which, answerId) {
-            const correctAnswerId = Config.quiz1.correct[which];
-            const state = answerId === correctAnswerId ? AnswerState.CORRECT : AnswerState.INCORRECT;
+            const state = answerId === this.getCorrectAnswer(which) ? AnswerState.CORRECT : AnswerState.INCORRECT;
             this.$set(this.answerState, which, state);
         },
         failedDetection() {
@@ -215,9 +215,11 @@ export default {
             clearTimeout(this.detectionErrorTimeout);
             this.detectionErrorTimeout = setTimeout(() => this.hasDetectionError = false, 5000);
         },
-        showModalWithAnswers(answerId) {
+        showModalWithAnswers(answerId, which) {
             this.modalAnswers = [];
-            for (const id of getSimilarFeatureIds(answerId)) {
+            const possibleAnswers = getSimilarFeatureIds(answerId);
+            possibleAnswers.push(this.getCorrectAnswer(which));
+            for (const id of new Set(possibleAnswers)) {
                 if (this.answerNames.hasOwnProperty(id)) {
                     this.modalAnswers.push({
                         id,

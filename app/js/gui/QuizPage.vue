@@ -58,8 +58,6 @@
                     </button>
                 </div>
             </div>
-            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch(1)">Simulate touch #1
-            </button>
         </div>
     </div>
 </template>
@@ -71,11 +69,9 @@ import Config from "@json/config.json";
 import {getSimilarFeatureIds, hasSimilarFeatures} from "@js/Helpers/SimilarFeatures";
 import {AnswerState} from "@js/Stuctures/Constants";
 import AnswerModal from "@js/gui/components/AnswerModal.vue";
-import TouchSimulatorMixin from "@js/Helpers/TouchSimulatorMixin.js";
 
 export default {
     name: "QuizPage",
-    mixins: [TouchSimulatorMixin],
     components: {AnswerModal, Detector},
     props: {
         selected: {
@@ -215,11 +211,15 @@ export default {
         },
         showModalWithAnswers(answerId) {
             this.modalAnswers = [];
-            for (const id of getSimilarFeatureIds(answerId)) {
-                this.modalAnswers.push({
-                    id,
-                    name: this.answerNames[id]
-                });
+            const possibleAnswers = getSimilarFeatureIds(answerId);
+            possibleAnswers.push(parseInt(this.correctAnswerId));
+            for (const id of new Set(possibleAnswers)) {
+                if (this.answerNames.hasOwnProperty(id)) {
+                    this.modalAnswers.push({
+                        id,
+                        name: this.answerNames[id]
+                    });
+                }
             }
             this.modalAnswers.sort(function (a, b) {
                 return Math.random() - 0.5;
@@ -398,10 +398,12 @@ export default {
     padding-right: 80px;
     opacity: 0;
     transition: all linear 500ms;
+    pointer-events: none;
 
     &.visible {
         opacity: 1;
         transition-duration: 200ms;
+        pointer-events: auto;
     }
 
     & .answer-button {

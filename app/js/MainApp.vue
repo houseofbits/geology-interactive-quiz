@@ -1,10 +1,10 @@
 <template>
-  <router-view></router-view>
+    <router-view></router-view>
 </template>
 
 <script>
 export default {
-  name: "MainApp"
+    name: "MainApp"
 }
 </script>
 
@@ -13,13 +13,14 @@ export default {
 @import "~/bootstrap/bootstrap.scss";
 
 html {
-  touch-action: none;
+    touch-action: none;
 }
 
 body {
-  font-family: Arimo;
-  user-select: none;
-  background-color: darkgray;
-  overflow: hidden;
+    font-family: Arimo;
+    user-select: none;
+    background-color: darkgray;
+    overflow: hidden;
+    cursor: none;
 }
 </style>

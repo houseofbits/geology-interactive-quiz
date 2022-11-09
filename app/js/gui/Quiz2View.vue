@@ -24,27 +24,6 @@
             </template>
         </quiz2-slide>
 
-        <detector
-            v-for="(a, index) in 5"
-            :key="index"
-            :class="{visible: openIndex===null && !useButtons && !isAnswerCorrect(index)}"
-            :position-x="tagState[index].x"
-            :position-y="tagState[index].y"
-            :definitions="featureDefinitions"
-            :disabled="isDisabled(index)"
-            :state="answerState[index]"
-            @detected="(s) => setAnswer(index, s)"
-            @failed="failedDetection"/>
-
-        <div
-            v-for="(a, index) in 5" class="point"
-            :data-index="index"
-            :class="{visible: !openIndex}"
-            :key="'line'+index"
-        >
-            <div class="line"></div>
-        </div>
-
         <div :class="{visible: !openIndex}" class="answers-block">
             <div @click="openSlideManually(0)" class="answer-button" :class="{visible:isAnswerCorrect(0) || useButtons}">
                 <span>NOGĀZE</span>
@@ -76,6 +55,27 @@
                     <i class="fa-solid fa-right-long"></i>
                 </span>
             </div>
+        </div>
+
+        <detector
+            v-for="(a, index) in 5"
+            :key="index"
+            :class="{visible: openIndex===null && !useButtons && !isAnswerCorrect(index)}"
+            :position-x="tagState[index].x"
+            :position-y="tagState[index].y"
+            :definitions="featureDefinitions"
+            :disabled="isDisabled(index)"
+            :state="answerState[index]"
+            @detected="(s) => setAnswer(index, s)"
+            @failed="failedDetection"/>
+
+        <div
+            v-for="(a, index) in 5" class="point"
+            :data-index="index"
+            :class="{visible: !openIndex}"
+            :key="'line'+index"
+        >
+            <div class="line"></div>
         </div>
 
         <div class="main-title">
@@ -121,9 +121,6 @@
                     </button>
                 </div>
             </div>
-            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch(1)">Simulate touch #1</button>
-            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch(2)">Simulate touch #2</button>
-            <button class="btn btn-lg btn-success mt-2 btn-block mx-1" @click="simulateTouch(3)">Simulate touch #3</button>
         </div>
     </div>
 </template>
@@ -139,11 +136,9 @@ import FeatureDefinitionBuilder from "@js/Services/FeatureDefinitionBuilder";
 import Detector from "@js/gui/components/Detector.vue";
 import AnswerModal from "@js/gui/components/AnswerModal.vue";
 import {getSimilarFeatureIds, hasSimilarFeatures} from "@js/Helpers/SimilarFeatures.js";
-import TouchSimulatorMixin from "@js/Helpers/TouchSimulatorMixin";
 
 export default {
     name: "Quiz2View",
-    mixins: [TouchSimulatorMixin],
     components: {
         AnswerModal,
         Quiz2Slide,
@@ -239,11 +234,7 @@ export default {
             return this.answerState[index] === AnswerState.CORRECT;
         },
         reset() {
-            this.$set(this.answerState, 0, null);
-            this.$set(this.answerState, 1, null);
-            this.$set(this.answerState, 2, null);
-            this.$set(this.answerState, 3, null);
-            this.$set(this.answerState, 4, null);
+            this.$router.go();
         },
         openSlide(index) {
             this.openIndex = index;
@@ -291,7 +282,7 @@ export default {
             }
         },
         setAnswer(which, answerId) {
-            if (this.isAnswerModalVisible) {
+            if (this.isAnswerModalVisible || this.openIndex !== null) {
                 return;
             }
 
@@ -300,15 +291,17 @@ export default {
             if (this.answerState[which] === null) {
                 if (this.shouldShowModalWithAnswers(answerId)) {
                     this.selectedIndex = which;
-                    this.showModalWithAnswers(answerId);
+                    this.showModalWithAnswers(answerId, which);
                 } else {
                     this.setState(which, answerId);
                 }
             }
         },
-        showModalWithAnswers(answerId) {
+        showModalWithAnswers(answerId, which) {
             this.modalAnswers = [];
-            for (const id of getSimilarFeatureIds(answerId)) {
+            const possibleAnswers = getSimilarFeatureIds(answerId);
+            possibleAnswers.push(this.correctAnswers[which]);
+            for (const id of new Set(possibleAnswers)) {
                 if (this.answerNames.hasOwnProperty(id)) {
                     this.modalAnswers.push({
                         id,
@@ -330,6 +323,10 @@ export default {
             this.selectedIndex = null;
         },
         isDisabled(index) {
+            if (this.isAnswerCorrect(index)) {
+                return true;
+            }
+
             if (this.openIndex !== null || this.useButtons) {
                 return true;
             }
@@ -811,6 +808,10 @@ export default {
     flex-direction: column;
     opacity: 0;
     //border-right: 1px solid lightgray;
+
+    & > * {
+        pointer-events: none;
+    }
 
     &.visible {
         opacity: 1;

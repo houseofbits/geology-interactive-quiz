@@ -11,16 +11,18 @@ export default class TouchRegister {
         this.touchHandler = null;
     }
 
-    registerInputHandlers() {
-        document.addEventListener('touchstart', this.onTouchStartEvent.bind(this), false);
-        document.addEventListener('touchend', this.onTouchEndEvent.bind(this), false);
-        document.addEventListener('touchmove', this.onTouchMoveEvent.bind(this), false);
+    registerInputHandlers(element) {
+        const target = element ? element : document;
+        target.addEventListener('touchstart', this.onTouchStartEvent.bind(this), false);
+        target.addEventListener('touchend', this.onTouchEndEvent.bind(this), false);
+        target.addEventListener('touchmove', this.onTouchMoveEvent.bind(this), false);
     }
 
-    unregisterInputHandlers() {
-        document.removeEventListener('touchstart', this.onTouchStartEvent);
-        document.removeEventListener('touchend', this.onTouchEndEvent);
-        document.removeEventListener('touchmove', this.onTouchMoveEvent);
+    unregisterInputHandlers(element) {
+        const target = element ? element : document;
+        target.removeEventListener('touchstart click', this.onTouchStartEvent);
+        target.removeEventListener('touchend', this.onTouchEndEvent);
+        target.removeEventListener('touchmove', this.onTouchMoveEvent);
     }
 
     onTouchStartEvent(event) {
@@ -46,9 +48,10 @@ export default class TouchRegister {
     addTouches(touches) {
         this.touches = [];
         for (const touch of touches) {
-            if (this.region.isPointIntersecting(touch.clientX, touch.clientY)) {
-                this.touches.push(new TouchPoint(touch.identifier, touch.clientX, touch.clientY));
-            }
+            this.touches.push(new TouchPoint(touch.identifier, touch.clientX, touch.clientY));
+            // if (this.region.isPointIntersecting(touch.clientX, touch.clientY)) {
+            //     this.touches.push(new TouchPoint(touch.identifier, touch.clientX, touch.clientY));
+            // }
         }
     }
 

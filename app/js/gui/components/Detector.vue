@@ -1,5 +1,5 @@
 <template>
-    <div class="tag" :style="style" :class="{loading: processing}">
+    <div class="tag" :style="style" :class="{loading: processing, disabled: disabled}">
         <slot></slot>
         <div class="loading-ring">
             <div class="ring-layer"></div>
@@ -57,6 +57,7 @@ export default {
         disabled(value) {
             //console.log(this.positionX+', '+this.positionY);
             this.detector.setDisabled(value);
+            this.processing = false;
         }
     },
     computed: {
@@ -88,8 +89,8 @@ export default {
         },
         detectedObjectHandler(id) {
             if (this.processing && !this.incorrect && !this.correct) {
-                this.emitState(id);
                 this.processing = false;
+                this.emitState(id);
             }
         },
         emitState(id) {
@@ -104,7 +105,8 @@ export default {
         },
     },
     mounted() {
-        this.detector.touch.region.set(this.positionX - 30,this.positionY - 30, this.positionX + 180, this.positionY + 180);
+        this.detector.setElement(this.$el);
+        //this.detector.touch.region.set(this.positionX - 30,this.positionY - 30, this.positionX + 180, this.positionY + 180);
         // this.detector.touch.registerInputHandlers();
         this.detector.featureDefinitions = this.definitions;
         // this.detector.runDetectionLoop();
@@ -128,11 +130,20 @@ export default {
 }
 
 .tag {
-    pointer-events: none;
+    pointer-events: auto;
     z-index: 1;
     position: absolute;
     width: 150px;
     height: 150px;
+    //border: dashed 2px blue;
+
+    &.disabled {
+        pointer-events: none;
+    }
+
+    & > * {
+        pointer-events: none;
+    }
 
     &.loading {
         & .loading-ring {
