@@ -22,3 +22,4 @@ ExecStart=/usr/bin/startx -- vt8 -keeptty -verbose 3 -logfile /dev/null
 Restart=no
 
 [Install]
+WantedBy=graphical.target

@@ -77,7 +77,7 @@ For reference: https://vincent.bernat.ch/en/blog/2021-startx-systemd
     sudo systemctl restart nginx
 
     sudo mkdir -p /var/www/html
-    sudo cp /mnt/usbdrive/dist/* /var/www/html/
+    sudo cp -r /mnt/usbdrive/dist/* /var/www/html/
 
     sudo nano /etc/hosts
         add
@@ -110,8 +110,10 @@ Set up static ip
 
 Disable other connections
 
-    sudo nmcli connection mod 'Wired connection 1' connection.autoconnect no
+    sudo nmcli connection delete 'Wired connection 1'
     sudo nmcli connection mod internet1 connection.autoconnect no
+
+    ip a
     
 For reference: 
  * https://www.tecmint.com/configure-network-connections-using-nmcli-tool-in-linux/        
