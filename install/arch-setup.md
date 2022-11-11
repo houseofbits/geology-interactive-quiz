@@ -7,7 +7,7 @@ Guided script settings
  * Hostname: lvdm
 
 # Setup autologin 
-Not needed if Running X11 as service
+Not needed if starting X11 as a service
 
     sudo mkdir -p /etc/systemd/system/getty@tty1.service.d/
     
@@ -17,7 +17,7 @@ Not needed if Running X11 as service
     ExecStart=
     ExecStart=-/sbin/agetty --autologin lvdm --noclear %I $TERM
     
-as an alternative, can run init.d script, similar to this (not tested):
+as an alternative, can use init.d script to start X11 process (not tested):
 
     startx -e chromium http://application.local
 
