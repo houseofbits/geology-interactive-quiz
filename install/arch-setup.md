@@ -1,6 +1,6 @@
 # Arch install
 Guided script settings
- * Additional packages: nginx xterm chromium nano
+ * Additional packages: nginx xterm chromium nano xorg-xinput
  * Profile: xorg
  * Network: NetworkManager
  * User: lvdm
@@ -37,20 +37,23 @@ Enable
 
     cp /etc/X11/xinit/xinitrc ~/.xinitrc
 
+    /home/lvdm/kiosk.sh [copy from config]
+
     sudo nano .xinitrc
         add
-            exec chromium --kiosk --incognito --disable-web-security http://application.local
-    
+            /bin/bash /home/lvdm/kiosk.sh
+
 To test
 
+    xinput list
+    xinput list-props
     startx
 
-# Disable sleep
-
-    sudo nano ~/.xinitrc
-        add
-            xset -dpms
-            xset s off
+For reference: 
+* https://gist.github.com/rubo77/daa262e0229f6e398766
+* https://wiki.archlinux.org/title/xrandr
+* https://wiki.archlinux.org/title/Xinput
+* https://unix.stackexchange.com/questions/273989/how-can-i-make-chromium-start-full-screen-under-x
 
 # Create X11 service
     
@@ -138,6 +141,14 @@ For reference:
     sudo systemctl restart systemd-timesyncd.service
 
     timedatectl show-timesync --all
+
+Set timezone
+    
+    sudo timedatectl set-timezone Europe/Riga
+
+Useful
+
+    timedatectl list-timezones | grep Riga
 
 # Power off
 
