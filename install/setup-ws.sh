@@ -18,9 +18,14 @@ fi
 
 message "Create /var/www/html directory and copy application files"
 sudo mkdir -p /var/www/html
-sudo cp -r ../dist/* /var/www/html/
+sudo cp -rv ../dist/* /var/www/html/
 
 message "Enable nginx service & restart"
 sudo systemctl enable --now nginx
 sudo systemctl restart nginx
+
+message "Add hosts file entry"
+sudo echo '127.0.0.1  application.local' >> /etc/hosts
+
+
 

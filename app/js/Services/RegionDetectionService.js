@@ -289,7 +289,7 @@ export default class RegionDetectionService {
      */
     detectObjects() {
         let objects = this.detectObjectFromPoints(this.touch.touches);
-        if (objects.length ===0 && this.detectedObjects.length === 0 && this.touch.touches.length > 0) {
+        if (objects.length ===0 && this.detectedObjects.length === 0 && this.touch.touches.length > 1) {
             const obj = new BasicDetectionResult();
             obj.weight = 0.1;
             obj.defId = this.featureDefinitions[0].id;
