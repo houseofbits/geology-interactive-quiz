@@ -1,7 +1,7 @@
 <template>
     <div class="tag" :style="style" :class="{loading: processing, disabled: disabled}">
         <slot></slot>
-        <div class="loading-ring">
+        <div class="loading-ring" v-if="defaultActive">
             <div class="ring-layer"></div>
         </div>
         <div class="inner-default" :class="{active: defaultActive, disabled: disabled}">
@@ -54,6 +54,9 @@ export default {
         };
     },
     watch: {
+        state() {
+            this.detector.setDisabled(!this.defaultActive);
+        },
         disabled(value) {
             //console.log(this.positionX+', '+this.positionY);
             this.detector.setDisabled(value);

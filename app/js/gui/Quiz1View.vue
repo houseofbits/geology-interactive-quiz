@@ -104,6 +104,7 @@ import FeatureDefinitionBuilder from "@js/Services/FeatureDefinitionBuilder";
 import AnswerModal from "@js/gui/components/AnswerModal.vue";
 import {getSimilarFeatureIds, hasSimilarFeatures} from "@js/Helpers/SimilarFeatures";
 import TouchSimulatorMixin from "@js/Helpers/TouchSimulatorMixin.js";
+import InactivityWatcher from "@js/Services/InactivityWatcher.js";
 
 export default {
     name: "Quiz1View",
@@ -261,6 +262,9 @@ export default {
         window.addEventListener("contextmenu", function (e) {
             e.preventDefault();
         });
+
+        InactivityWatcher.registerInputHandlers();
+        InactivityWatcher.setCallback(this.reset);
     }
 }
 </script>

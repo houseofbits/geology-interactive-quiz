@@ -51,6 +51,7 @@ import Config from "@json/config.json";
 import Detector from "@js/gui/components/Detector.vue";
 import FeatureDefinitionBuilder from "@js/Services/FeatureDefinitionBuilder";
 import AnswerModal from "@js/gui/components/AnswerModal.vue";
+import InactivityWatcher from "@js/Services/InactivityWatcher.js";
 
 export default {
     name: "Quiz3View",
@@ -128,7 +129,6 @@ export default {
             this.$router.go();
         },
         initPage() {
-            this.updateResetTimer();
             if (this.selectedQuestion === 0) {
                 this.pageAnswers = [
                     AnswerState.UNKNOWN,
@@ -145,7 +145,6 @@ export default {
             this.pageAnswers[this.selectedQuestion] = AnswerState.CURRENT;
         },
         continueNext() {
-            this.updateResetTimer();
             if (this.selectedQuestion + 1 === 8) {
                 this.isFinalViewVisible = true;
                 this.selectedQuestion = 8;
@@ -157,12 +156,7 @@ export default {
         setQuestionState(state) {
             this.$set(this.pageAnswers, this.selectedQuestion, state);
         },
-        updateResetTimer() {
-            clearTimeout(this.resetTimeout);
-            this.resetTimeout = setTimeout(this.reset, 120000);
-        },
         failedDetection() {
-            this.updateResetTimer();
             this.hasDetectionError = true;
             clearTimeout(this.detectionErrorTimeout);
             this.detectionErrorTimeout = setTimeout(() => this.hasDetectionError = false, 3000);
@@ -176,6 +170,9 @@ export default {
         });
 
         this.initPage();
+
+        InactivityWatcher.registerInputHandlers();
+        InactivityWatcher.setCallback(this.reset);
     }
 }
 </script>

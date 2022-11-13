@@ -45,7 +45,8 @@ export default class RegionDetectionService {
             this.touch.registerInputHandlers(this.regionElement);
         }
         this.runDetectionLoop();
-        // console.log('is disabled '+this.isDisabled);
+
+//        console.log('is disabled '+this.isDisabled);
     }
 
     beginDetection() {
