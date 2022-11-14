@@ -67,15 +67,17 @@
             :disabled="isDisabled(index)"
             :state="answerState[index]"
             @detected="(s) => setAnswer(index, s)"
-            @failed="failedDetection"/>
+            @failed="failedDetection"
+            @processing="startProcessing(index)"
+        />
 
         <div
             v-for="(a, index) in 5" class="point"
             :data-index="index"
-            :class="{visible: !openIndex}"
+            :class="{visible: isLineVisible(index)}"
             :key="'line'+index"
         >
-            <div class="line"></div>
+            <div class="line" :class="{processing: (index===processingIndex)}"></div>
         </div>
 
         <div class="main-title">
@@ -215,6 +217,7 @@ export default {
                 7: "DELTAS NOGĀZE",
             },
             selectedIndex: null,
+            processingIndex: null
         };
     },
     computed: {
@@ -231,6 +234,12 @@ export default {
         },
     },
     methods: {
+        isLineVisible(index) {
+            if (this.isAnswerCorrect(index) || this.useButtons) {
+                return false;
+            }
+            return !this.openIndex && index !== this.processingIndex;
+        },
         isAnswerCorrect(index) {
             return this.answerState[index] === AnswerState.CORRECT;
         },
@@ -269,12 +278,14 @@ export default {
             }
             this.requestPortPinsWithParams(params);
         },
+        startProcessing (index) {
+            this.processingIndex = index;
+        },
         failedDetection() {
             this.hasDetectionError = true;
             clearTimeout(this.detectionErrorTimeout);
             this.detectionErrorTimeout = setTimeout(() => this.hasDetectionError = false, 5000);
         },
-
         setState(index, answerId) {
             const state = answerId === this.correctAnswers[index] ? AnswerState.CORRECT : AnswerState.INCORRECT;
             this.$set(this.answerState, index, state);
@@ -283,6 +294,8 @@ export default {
             }
         },
         setAnswer(which, answerId) {
+            this.processingIndex = null;
+
             if (this.isAnswerModalVisible || this.openIndex !== null) {
                 return;
             }
@@ -324,6 +337,10 @@ export default {
             this.selectedIndex = null;
         },
         isDisabled(index) {
+            if (this.processingIndex !== null) {
+                return index !== this.processingIndex;
+            }
+
             if (this.isAnswerCorrect(index)) {
                 return true;
             }
@@ -674,10 +691,11 @@ export default {
     & .line {
         position: absolute;
         width: 3px;
-        height: 200px;
         background-color: white;
         bottom: 40px;
         left: 18px;
+        transition: all linear 500ms;
+        height: 0;
     }
 
     &.visible {
@@ -688,8 +706,8 @@ export default {
         left: 82.4px;
         bottom: 80px;
 
-        .line {
-            height: 346px;
+        &.visible > .line {
+            height: 320px;
         }
     }
 
@@ -697,8 +715,8 @@ export default {
         left: 287.2px;
         bottom: 80px;
 
-        .line {
-            height: 280px;
+        &.visible > .line {
+            height: 225px;
         }
     }
 
@@ -706,7 +724,7 @@ export default {
         left: 492px;
         bottom: 80px;
 
-        .line {
+        &.visible > .line {
             height: 346px;
         }
     }
@@ -715,8 +733,8 @@ export default {
         left: 696.8px;
         bottom: 80px;
 
-        .line {
-            height: 280px;
+        &.visible > .line {
+            height: 224px;
         }
     }
 
@@ -724,7 +742,7 @@ export default {
         left: 901.6px;
         bottom: 80px;
 
-        .line {
+        &.visible > .line {
             height: 346px;
         }
     }

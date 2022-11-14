@@ -56,6 +56,9 @@ export default {
     watch: {
         state() {
             this.detector.setDisabled(!this.defaultActive);
+            if (this.correct || this.incorrect) {
+                this.processing = false;
+            }
         },
         disabled(value) {
             //console.log(this.positionX+', '+this.positionY);
@@ -83,6 +86,7 @@ export default {
     methods: {
         detectStartHandler() {
             this.processing = !this.correct && !this.incorrect;
+            this.$emit('processing');
         },
         detectEndHandler() {
             if (this.processing) {

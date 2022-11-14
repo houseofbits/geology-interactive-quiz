@@ -289,8 +289,13 @@ export default class RegionDetectionService {
      * @returns {BasicDetectionResult[]}
      */
     detectObjects() {
-        let objects = this.detectObjectFromPoints(this.touch.touches);
-        if (objects.length ===0 && this.detectedObjects.length === 0 && this.touch.touches.length > 1) {
+        if (this.touch.touches.length > 2) {
+            let objects = this.detectObjectFromPoints(this.touch.touches);
+            if (objects.length > 0) {
+                return objects;
+            }
+        }
+        if (this.detectedObjects.length === 0 && this.touch.touches.length > 0) {
             const obj = new BasicDetectionResult();
             obj.weight = 0.1;
             obj.defId = this.featureDefinitions[0].id;
@@ -298,7 +303,7 @@ export default class RegionDetectionService {
 
             return [obj];
         }
-        return objects;
+        return [];
     }
 
     /**
