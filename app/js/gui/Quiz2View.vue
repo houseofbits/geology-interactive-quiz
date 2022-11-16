@@ -291,6 +291,7 @@ export default {
             this.$set(this.answerState, index, state);
             if (state === AnswerState.CORRECT) {
                 this.openIndex = index;
+                this.openSlide(index);
             }
         },
         setAnswer(which, answerId) {
