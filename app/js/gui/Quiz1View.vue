@@ -185,7 +185,6 @@ export default {
     },
     methods: {
         clickDetector(which) {
-            console.log("clickDetector", which);
             if (this.isAnswerModalVisible) {
                 return;
             }
