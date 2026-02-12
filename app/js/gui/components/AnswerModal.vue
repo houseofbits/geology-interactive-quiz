@@ -2,8 +2,8 @@
     <div :class="{visible: visible}" class="modal-overlay">
         <div class="modal-box">
             <div class="header">
-                <img src="@images/move-away.gif" alt="">
-                Novieto klucīti atpakaļ vietā un izvēlies vienu no atbilžu variantiem
+                <!-- <img src="@images/move-away.gif" alt=""> -->
+                Izvēlies atbildes variantu
             </div>
             <div class="body">
                 <div v-for="answer in answers" :key="answer.id" @click="click(answer.id)" class="answer-button">
@@ -81,7 +81,8 @@ export default {
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 24px;
+            font-weight: bold;
             color: #606060;
             padding: 16px;
             padding-bottom: 0;

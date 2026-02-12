@@ -1,5 +1,5 @@
 <template>
-    <div class="tag" :style="style" :class="{loading: processing, disabled: disabled}">
+    <div @click="handleClick" class="tag" :style="style" :class="{loading: processing, disabled: disabled}">
         <slot></slot>
         <div class="loading-ring" v-if="defaultActive">
             <div class="ring-layer"></div>
@@ -84,6 +84,11 @@ export default {
         }
     },
     methods: {
+        handleClick() {
+            if (!this.disabled) {
+                this.$emit('click');
+            }
+        },
         detectStartHandler() {
             this.processing = !this.correct && !this.incorrect;
             this.$emit('processing');

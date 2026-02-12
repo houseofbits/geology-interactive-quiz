@@ -10,7 +10,7 @@
             </div>
         </div>
 
-        <div class="detector-info-block">
+        <!-- <div class="detector-info-block">
             <div v-if="hasDetectionError" class="detector-info">
                 <div class="icon hand-icon-2"></div>
                 <div class="text">
@@ -23,15 +23,15 @@
                     atpazīšana.
                 </div>
             </div>
-        </div>
+        </div> -->
 
-        <detector :position-x="800" :position-y="150" :definitions="featureDefinitions" :disabled="isADisabled"
+        <detector @click="clickDetector(0)" :position-x="800" :position-y="150" :definitions="featureDefinitions" :disabled="isADisabled"
                   :state="answerState[0]" @detected="(s) => this.setAnswer(0, s)" @failed="failedDetection"/>
 
-        <detector :position-x="60" :position-y="370" :definitions="featureDefinitions" :disabled="isBDisabled"
+        <detector @click="clickDetector(1)" :position-x="60" :position-y="370" :definitions="featureDefinitions" :disabled="isBDisabled"
                   :state="answerState[1]" @detected="(s) => this.setAnswer(1, s)" @failed="failedDetection"/>
 
-        <detector :position-x="800" :position-y="550" :definitions="featureDefinitions" :disabled="isCDisabled"
+        <detector @click="clickDetector(2)" :position-x="800" :position-y="550" :definitions="featureDefinitions" :disabled="isCDisabled"
                   :state="answerState[2]" @detected="(s) => this.setAnswer(2, s)" @failed="failedDetection"/>
 
         <div class="question-row column1" :class="{correct: isACorrect, wrong: isAIncorrect}">
@@ -184,6 +184,16 @@ export default {
         }
     },
     methods: {
+        clickDetector(which) {
+            console.log("clickDetector", which);
+            if (this.isAnswerModalVisible) {
+                return;
+            }
+
+            if (this.answerState[which] === null) {
+                this.showModalWithAnswers(0, which);
+            }
+        },
         getCorrectAnswer(which) {
             return Config.quiz1.correct[which];
         },
@@ -208,7 +218,7 @@ export default {
             }
         },
         setState(which, answerId) {
-            const state = answerId === this.getCorrectAnswer(which) ? AnswerState.CORRECT : AnswerState.INCORRECT;
+            const state = parseInt(answerId) === this.getCorrectAnswer(which) ? AnswerState.CORRECT : AnswerState.INCORRECT;
             this.$set(this.answerState, which, state);
         },
         failedDetection() {
@@ -218,15 +228,11 @@ export default {
         },
         showModalWithAnswers(answerId, which) {
             this.modalAnswers = [];
-            const possibleAnswers = getSimilarFeatureIds(answerId);
-            possibleAnswers.push(this.getCorrectAnswer(which));
-            for (const id of new Set(possibleAnswers)) {
-                if (this.answerNames.hasOwnProperty(id)) {
-                    this.modalAnswers.push({
-                        id,
-                        name: this.answerNames[id]
-                    });
-                }
+            for (const answerId  of Object.keys(this.answerNames)) {
+                this.modalAnswers.push({
+                    id: answerId,
+                    name: this.answerNames[answerId]
+                });
             }
             this.modalAnswers.sort(function (a, b) {
                 return Math.random() - 0.5;
@@ -239,6 +245,7 @@ export default {
         },
         selectAnswerFromModal(answerId) {
             if (this.isAActive) {
+                console.log(answerId);
                 this.setState(0, answerId);
             } else if (this.isBActive) {
                 this.setState(1, answerId);

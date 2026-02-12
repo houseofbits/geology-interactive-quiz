@@ -21,6 +21,6 @@ body {
     user-select: none;
     background-color: darkgray;
     overflow: hidden;
-    cursor: none;
+    // cursor: none;
 }
 </style>

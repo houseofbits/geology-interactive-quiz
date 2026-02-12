@@ -69,6 +69,7 @@
             @detected="(s) => setAnswer(index, s)"
             @failed="failedDetection"
             @processing="startProcessing(index)"
+            @click="handleDetectorClick(index)"
         />
 
         <div
@@ -96,7 +97,7 @@
             </div>
         </div>
 
-        <div v-if="!useButtons && !areAllAnswersCorrect" class="detector-info-block">
+        <!-- <div v-if="!useButtons && !areAllAnswersCorrect" class="detector-info-block">
             <div v-if="hasDetectionError" class="detector-info">
                 <div class="icon hand-icon-2"></div>
                 <div class="text">
@@ -109,7 +110,7 @@
                     notiek atpazīšana.
                 </div>
             </div>
-        </div>
+        </div> -->
 
         <answer-modal :visible="isAnswerModalVisible" :answers="modalAnswers" @selected="selectAnswerFromModal"/>
 
@@ -234,6 +235,16 @@ export default {
         },
     },
     methods: {
+        handleDetectorClick(which) {
+            if (this.isAnswerModalVisible) {
+                return;
+            }
+
+            if (this.answerState[which] === null) {
+                this.selectedIndex = which;
+                this.showModalWithAnswers(0, which);
+            }
+        },
         isLineVisible(index) {
             if (this.isAnswerCorrect(index) || this.useButtons) {
                 return false;
@@ -287,7 +298,7 @@ export default {
             this.detectionErrorTimeout = setTimeout(() => this.hasDetectionError = false, 5000);
         },
         setState(index, answerId) {
-            const state = answerId === this.correctAnswers[index] ? AnswerState.CORRECT : AnswerState.INCORRECT;
+            const state = parseInt(answerId) === this.correctAnswers[index] ? AnswerState.CORRECT : AnswerState.INCORRECT;
             this.$set(this.answerState, index, state);
             if (state === AnswerState.CORRECT) {
                 this.openIndex = index;
@@ -313,19 +324,16 @@ export default {
         },
         showModalWithAnswers(answerId, which) {
             this.modalAnswers = [];
-            const possibleAnswers = getSimilarFeatureIds(answerId);
-            possibleAnswers.push(this.correctAnswers[which]);
-            for (const id of new Set(possibleAnswers)) {
-                if (this.answerNames.hasOwnProperty(id)) {
-                    this.modalAnswers.push({
-                        id,
-                        name: this.answerNames[id]
-                    });
-                }
+            for (const answerId  of Object.keys(this.answerNames)) {
+                this.modalAnswers.push({
+                    id: answerId,
+                    name: this.answerNames[answerId]
+                });
             }
             this.modalAnswers.sort(function (a, b) {
                 return Math.random() - 0.5;
             });
+
             this.isAnswerModalVisible = true;
         },
         shouldShowModalWithAnswers(answerId) {

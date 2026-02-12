@@ -27,9 +27,9 @@
             </div>
 
             <div class="main-buttons-block">
-                <div class="variants-button" @click="useButtons=!useButtons">
+                <!-- <div class="variants-button" @click="useButtons=!useButtons">
                     {{ useButtons ? 'Izmantot elementus' : 'Atbilžu varianti'}}
-                </div>
+                </div> -->
                 <div class="reset-button" @click="reset">
                     <span>No sākuma</span>
                     <i class="fas fa-sync-alt"></i>
@@ -91,7 +91,7 @@ export default {
             resetTimeout: null,
             hasDetectionError: false,
             detectionErrorTimeout: null,
-            useButtons: false,
+            useButtons: true,
         };
     },
     computed: {

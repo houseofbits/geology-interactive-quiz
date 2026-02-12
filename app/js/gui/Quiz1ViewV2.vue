@@ -4,7 +4,7 @@
         <div class="main-title">
             <span>Izvēlies pareizo iezi</span>
 
-            <div v-if="hasDetectionError" class="detector-info">
+            <!-- <div v-if="hasDetectionError" class="detector-info">
                 <div class="icon hand-icon-2"></div>
                 <div class="text">
                     Neizdevās atpazīt elementu. Mēģini vēlreiz novietojot elementu precīzi sarkanajā aplī.
@@ -15,7 +15,7 @@
                 <div class="text">Novieto atbilstošo elementu sarkanajā aplī. Turi to vismaz 2 sekundes, kamēr notiek
                     atpazīšana.
                 </div>
-            </div>
+            </div> -->
 
 
         </div>
